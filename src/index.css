@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Noto Sans SC", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Noto Sans SC", "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #000f22;
+  --color-primary-container: #0a2540;
+  --color-secondary: #006876;
+  --color-secondary-container: #58e6ff;
+  --color-on-secondary-container: #006573;
+  --color-surface: #fdfaf6;
+  --color-surface-container: #f5f0e8;
+  --color-surface-container-low: #f9f5ed;
+  --color-surface-container-high: #f0ebe0;
+  --color-surface-container-highest: #ebe6db;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #43474d;
+  --color-outline-variant: #c4c6ce;
+}
+
+.dark {
+  --color-primary: #d1e4ff;
+  --color-primary-container: #004977;
+  --color-secondary: #58e6ff;
+  --color-secondary-container: #004c68;
+  --color-on-secondary-container: #cbe6ff;
+  --color-surface: #191c1e;
+  --color-surface-container: #1e2022;
+  --color-surface-container-low: #1c1e20;
+  --color-surface-container-high: #222426;
+  --color-surface-container-highest: #282a2c;
+  --color-on-surface: #e2e2e6;
+  --color-on-surface-variant: #c4c6ce;
+  --color-outline-variant: #43474d;
+}
+
+@layer base {
+  body {
+    @apply bg-surface font-body text-on-surface antialiased;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ====================== 滚动条样式（彻底消除兼容性警告） ====================== */
+
+/* 完全隐藏滚动条 - 跨浏览器最佳实践 */
+.no-scrollbar {
+  -ms-overflow-style: none;        /* IE & 老版 Edge */
+}
+
+/* WebKit 内核浏览器（Chrome、Edge、Safari、Opera） */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 增强兼容性 */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+
+/* Firefox - 使用 @supports 避免旧浏览器兼容警告 */
+@supports (scrollbar-width: none) {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
