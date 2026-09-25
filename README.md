@@ -19,9 +19,83 @@
 | 层 | 技术 |
 |---|---|
 | 前端 | React 18 + React Router 6 + Vite 5（纯 JavaScript/JSX） |
+| 界面 | Design DNA 驱动的 CSS 设计系统 + Phosphor Icons（21px 字号档，Regular/Fill 双状态） |
+| 字体 | JetBrains Mono（标题 / 标签 / 数据）+ IBM Plex Sans（正文），Google Fonts 按 unicode-range 子集加载 |
 | 后端 | Node.js + Express 4 + pg（PostgreSQL 驱动） |
 | 数据库 | openGauss（兼容 PostgreSQL 协议） |
 | 认证 | bcryptjs 密码加密 + jsonwebtoken（JWT，7 天有效） |
+
+## 界面设计
+
+界面风格由一份 **Design DNA** JSON 驱动：先把审美方向结构化成三个维度的字段，再把字段逐条翻译成代码，避免「凭感觉调样式」。
+
+文件：`frontend/design-dna.cyber-terminal.json`
+
+### 三个维度
+
+| 维度 | 内容 | 落地位置 |
+|---|---|---|
+| **design_system** | 可度量的 token：色板、字阶、间距、圆角、阴影、动效曲线、图标、组件模式 | `frontend/src/index.css` 的 `:root` 变量 |
+| **design_style** | 可感知的取向：mood、构图策略、留白哲学、交互手感、品牌语气 | 组件结构与文案写法 |
+| **visual_effects** | 需要 CSS 以外手段实现的渲染：噪点背景、扫描线、光标聚光、打字机、SVG 信号线 | CSS 动画 + `App.jsx` 中两个 hook |
+
+### 风格方向：暗色终端 / 赛博监控台
+
+隐喻是「夜航舰桥的监控台」——黑玻璃面板上跑着青色信号灯。关键词：`tense` `precise` `nocturnal` `clinical` `focused`。
+
+**色板**（单一冷灰家族 + 单一信号青，无第二强调色）
+
+| 用途 | 色值 |
+|---|---|
+| 页面底色 | `#070a0e` |
+| 面板 / 卡片 | `#0f151c` |
+| 抬升层 | `#161e27` |
+| 信号青（accent） | `#00e5ff` |
+| 正文 / 次要 / 元信息 | `#f2f6f8` / `#c9d4db` / `#8b98a3` |
+| 语义色 | success `#2fe08a` · warning `#f5b83d` · error `#ff5f6c` · info `#5ab2ff` |
+
+**字阶与形制**
+
+- 圆角只有 `2 / 4 / 6px` 三档——刻意近乎直角
+- 阴影是「硬偏移 + 青色辉光」，不用柔和大扩散阴影
+- 动效 `cubic-bezier(0.2, 0, 0, 1)`，`120 / 200 / 320ms` 三档，无回弹
+- 等宽字体承担标题、标签与全部数值；数字全局 `tabular-nums` 对齐
+- 标题注入 `//`、章节注入 `##`、表单标签注入 `>`、空态注入 `> …_`，全站走终端字面量语气
+
+**视觉特效**
+
+已开启（全部 lightweight，不引入任何重型依赖）：
+
+| 特效 | 实现 |
+|---|---|
+| 背景网格 + 呼吸辉光 + 噪点 | `body` / `.app` 分层 `background-image`，噪点 opacity 0.04 |
+| 入场扫描线 | `.sweep` 用 `background-position` 动画（不触发重排） |
+| 滚动触发入场 | `App.jsx` 的 `useReveal()`：IntersectionObserver + MutationObserver + 1500ms 兜底 |
+| 光标聚光 | `App.jsx` 的 `<Spotlight/>`：rAF 跟随，仅精确指针设备且悬停面板内时显示 |
+| 顶栏信号线 | `<svg>` + `stroke-dashoffset` 循环 |
+| 打字机 | `.typewriter` 用 `clip-path` + `steps()`，方块光标为 `.typewriter::after` 色块 |
+| 毛玻璃 | 顶栏 / 底栏 `backdrop-filter: blur(18px) saturate(160%)` |
+
+已关闭（DNA 中 `enabled: false`，**代码里没有任何实现**）：粒子系统、3D、着色器、Canvas 绘图。
+
+**降级策略**
+
+- `prefers-reduced-motion: reduce` → 关闭全部动画与扫描线、隐藏聚光、打字机直接完整显示
+- 触屏 / coarse pointer → 聚光层 `display: none`
+- 滚动入场观察器失效 → 1500ms 后强制 `opacity: 1`，内容绝不卡在不可见
+
+### 质量检查
+
+| 项 | 结果 |
+|---|---|
+| 色值溯源 | CSS 中 21 个 hex，12 个与 DNA 精确匹配，9 个为同族派生，**0 个游离色** |
+| WCAG 对比度 | 14 组全部达标；正文 16.88:1、元信息 6.22:1、强调色 12.89:1、装饰级 3.42:1 |
+| 已关闭特效 | `canvas` / `three` / `gsap` / `lottie` / `pixi` / `WebGL` / `setInterval` 扫描命中 0 |
+| 动画循环 | 仅 Spotlight 使用 `requestAnimationFrame` |
+
+### 修改设计
+
+调风格时**只改两处**：`design-dna.cyber-terminal.json` 记录意图，`index.css` 的 `:root` 执行数值。组件样式里的颜色一律引用变量，不写裸色值——这是上表「0 游离色」能成立的前提。
 
 ## 项目结构
 

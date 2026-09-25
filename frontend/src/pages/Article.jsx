@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { BookmarkSimple, CaretLeft, Clock, LinkSimple } from '@phosphor-icons/react'
+import { BookmarkSimple, CaretLeft, Clock, LinkSimple, BookOpen } from '@phosphor-icons/react'
 import { getArticle, checkBookmark, addBookmark, removeBookmark } from '../api.js'
 
 function Inline({ text }) {
   const parts = String(text).split(/(\*\*[^*]+\*\*)/g)
   return parts.map((part, i) =>
-    part.startsWith('**') && part.endsWith('**') && part.length > 4
-      ? <strong key={i}>{part.slice(2, -2)}</strong>
-      : <React.Fragment key={i}>{part}</React.Fragment>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4 ? (
+      <strong key={i}>{part.slice(2, -2)}</strong>
+    ) : (
+      <React.Fragment key={i}>{part}</React.Fragment>
+    )
   )
 }
 
@@ -17,13 +19,19 @@ function RefLine({ line }) {
   if (m) {
     return (
       <p className="ref-link">
-        <LinkSimple size={12} weight="bold" style={{ verticalAlign: '-1px', marginRight: 4 }} />
+        <LinkSimple size={12} weight="bold" className="ico-inline-sm" />
         {m[1]}：
-        <a href={m[2]} target="_blank" rel="noreferrer">{m[2]}</a>
+        <a href={m[2]} target="_blank" rel="noreferrer">
+          {m[2]}
+        </a>
       </p>
     )
   }
-  return <p><Inline text={line} /></p>
+  return (
+    <p>
+      <Inline text={line} />
+    </p>
+  )
 }
 
 function Block({ block, section }) {
@@ -38,13 +46,15 @@ function Block({ block, section }) {
   const isOl = lines.every((l) => /^\d+\.\s/.test(l.trim()))
 
   if (isUl) {
-    return (
-      <ul>{lines.map((l, i) => <li key={i}><Inline text={l.trim().slice(2)} /></li>)}</ul>
-    )
+    return <ul>{lines.map((l, i) => <li key={i}><Inline text={l.trim().slice(2)} /></li>)}</ul>
   }
   if (isOl) {
     return (
-      <ol>{lines.map((l, i) => <li key={i}><Inline text={l.trim().replace(/^\d+\.\s/, '')} /></li>)}</ol>
+      <ol>
+        {lines.map((l, i) => (
+          <li key={i}><Inline text={l.trim().replace(/^\d+\.\s/, '')} /></li>
+        ))}
+      </ol>
     )
   }
 
@@ -79,14 +89,23 @@ export default function Article({ user }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const [article, setArticle] = useState(null)
+  const [error, setError] = useState('')
   const [bookmarked, setBookmarked] = useState(false)
 
   useEffect(() => {
-    getArticle(id).then((data) => setArticle(data.article))
+    let alive = true
+    setArticle(null)
+    setError('')
+    getArticle(id)
+      .then((data) => alive && setArticle(data.article))
+      .catch((err) => alive && setError(err.message || '文章加载失败'))
     if (user) {
       checkBookmark(id)
-        .then((data) => setBookmarked(data.bookmarked))
+        .then((data) => alive && setBookmarked(data.bookmarked))
         .catch(() => {})
+    }
+    return () => {
+      alive = false
     }
   }, [id, user])
 
@@ -105,34 +124,59 @@ export default function Article({ user }) {
   }
 
   return (
-    <div className="page detail-page">
+    <article className="page detail-page">
       <div className="detail-bar">
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="返回">
           <CaretLeft size={20} />
         </button>
+        <svg
+          className="signal-line"
+          viewBox="0 0 240 12"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path d="M0 6 H240" />
+        </svg>
       </div>
 
-      {!article && (
-        <div>
-          <div className="sk sk-line" style={{ width: '35%', height: 12 }} />
-          <div className="sk sk-line" style={{ width: '92%', height: 24, margin: '16px 0' }} />
-          <div className="sk sk-line" style={{ width: '88%', height: 24, margin: '0 0 16px' }} />
-          <div className="sk sk-line" style={{ width: '45%', height: 12 }} />
-          <div style={{ height: 28 }} />
+      {!article && !error && (
+        <div className="sk-article" aria-hidden="true">
+          <div className="sk sk-eyebrow" />
+          <div className="sk sk-title w-92" />
+          <div className="sk sk-title w-88" />
+          <div className="sk sk-meta" />
           {[0, 1, 2, 3].map((i) => (
-            <div className="sk sk-line" key={i} style={{ width: '100%', height: 14, marginBottom: 16 }} />
+            <div className="sk sk-para" key={i} />
           ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="center enter" role="alert">
+          <div className="empty-art" aria-hidden="true">
+            <BookOpen size={23} />
+          </div>
+          <p className="empty-title">加载失败</p>
+          <p>{error}</p>
+          <div className="error-actions">
+            <button onClick={() => navigate('/')}>回到发现</button>
+            <button className="btn-text" onClick={() => navigate('/search')}>
+              去搜索
+            </button>
+          </div>
         </div>
       )}
 
       {article && (
         <div className="enter">
-          <span className="tag">{article.category}</span>
-          <h1>{article.title}</h1>
-          <div className="meta meta-none">
-            <Clock size={13} />
-            <span>{article.read_time}</span>
-          </div>
+          <header>
+            <span className="tag">{article.category}</span>
+            <h1>{article.title}</h1>
+            <div className="meta meta-none">
+              <Clock size={13} />
+              <span>{article.read_time}</span>
+            </div>
+          </header>
           <div className="content">
             <Content raw={article.content} />
           </div>
@@ -141,10 +185,14 @@ export default function Article({ user }) {
 
       <div className="action-bar">
         <button className={bookmarked ? 'fav-on' : 'btn-ghost'} onClick={toggle} disabled={!article}>
-          <BookmarkSimple size={18} weight={bookmarked ? 'fill' : 'regular'} style={{ verticalAlign: '-3px', marginRight: 6 }} />
+          <BookmarkSimple
+            size={18}
+            weight={bookmarked ? 'fill' : 'regular'}
+            className="ico-inline"
+          />
           {bookmarked ? '已收藏' : '收藏这篇'}
         </button>
       </div>
-    </div>
+    </article>
   )
 }
