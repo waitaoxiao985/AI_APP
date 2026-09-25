@@ -161,7 +161,7 @@ export default function App() {
 
       <main id="main" tabIndex={-1}>
         <Routes>
-          <Route path="/" element={<Discover />} />
+          <Route path="/" element={<Discover user={user} />} />
           <Route path="/search" element={<Search />} />
           <Route path="/profile" element={<Profile user={user} logout={logout} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />

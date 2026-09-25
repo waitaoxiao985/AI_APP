@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, MagnifyingGlass, MagnifyingGlassPlus } from '@phosphor-icons/react'
-import { searchArticles, getCategories } from '../api.js'
+import { searchArticles, getHotSearch } from '../api.js'
 
 export default function Search() {
   const [keyword, setKeyword] = useState('')
@@ -12,8 +12,8 @@ export default function Search() {
   const [hot, setHot] = useState([])
 
   useEffect(() => {
-    getCategories()
-      .then((data) => setHot(data.categories))
+    getHotSearch()
+      .then((data) => setHot(data.hot))
       .catch(() => {})
   }, [])
 
@@ -79,7 +79,7 @@ export default function Search() {
       {!searched && (
         <div className="enter">
           <p className="hot-label">大家在读</p>
-          <div className="chips" role="group" aria-label="按分类快速搜索">
+          <div className="chips" role="group" aria-label="热门搜索词">
             {hot.map((c) => (
               <button key={c} type="button" className="chip" onClick={(e) => doSearch(e, c)}>
                 {c}
@@ -138,7 +138,7 @@ export default function Search() {
           </div>
           <p className="empty-title typewriter">无匹配记录</p>
           <p className="empty-copy">
-            0 条结果。换个更短的关键词，或从上方分类直接检索。
+            0 条结果。换个更短的关键词，或点上方热词直接搜。
           </p>
           <button className="btn-text" onClick={reset}>
             清空搜索

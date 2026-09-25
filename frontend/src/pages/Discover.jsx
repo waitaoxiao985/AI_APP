@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, Clock, BookmarkSimple, CaretRight, Books } from '@phosphor-icons/react'
-import { getDaily, getTopics } from '../api.js'
+import { getDaily, getTopics, getBookmarksRecent } from '../api.js'
 
-export default function Discover() {
+export default function Discover({ user }) {
   const [daily, setDaily] = useState([])
   const [topics, setTopics] = useState([])
   const [promo, setPromo] = useState(0)
@@ -11,8 +11,29 @@ export default function Discover() {
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
   const [slide, setSlide] = useState(0)
+  const [recent, setRecent] = useState([])
+  const [favTotal, setFavTotal] = useState(0)
   const navigate = useNavigate()
   const touchX = useRef(0)
+
+  useEffect(() => {
+    if (!user) {
+      setRecent([])
+      setFavTotal(0)
+      return
+    }
+    let alive = true
+    getBookmarksRecent(2)
+      .then((data) => {
+        if (!alive) return
+        setRecent(data.bookmarks)
+        setFavTotal(data.total)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [user])
 
   useEffect(() => {
     let alive = true
@@ -156,19 +177,53 @@ export default function Discover() {
       {!loading && !error && (
         <>
           <p className="sub-eyebrow module-head">我的收藏</p>
-          <div className="saved-card enter">
-            <div className="saved-ico" aria-hidden="true">
-              <BookmarkSimple size={21} weight="duotone" />
+          {user && recent.length > 0 && (
+            <div className="saved-card enter">
+              <div className="saved-ico" aria-hidden="true">
+                <BookmarkSimple size={21} weight="duotone" />
+              </div>
+              <div className="saved-copy">
+                {recent.map((b) => (
+                  <p key={b.id} className="saved-item">{b.title}</p>
+                ))}
+                <p className="saved-sub">共 {favTotal} 篇收藏</p>
+              </div>
+              <button type="button" className="saved-go" onClick={() => navigate('/profile')}>
+                查看全部
+                <CaretRight size={13} />
+              </button>
             </div>
-            <div className="saved-copy">
-              <p className="saved-title">收藏的文章都在这里</p>
-              <p className="saved-sub">登录后可同步收藏，随时回来接着读</p>
+          )}
+          {user && recent.length === 0 && (
+            <div className="saved-card enter">
+              <div className="saved-ico" aria-hidden="true">
+                <BookmarkSimple size={21} weight="duotone" />
+              </div>
+              <div className="saved-copy">
+                <p className="saved-title">还没有收藏</p>
+                <p className="saved-sub">读到喜欢的文章，点一下收藏就会出现在这里</p>
+              </div>
+              <button type="button" className="saved-go" onClick={() => navigate('/search')}>
+                去找文章
+                <CaretRight size={13} />
+              </button>
             </div>
-            <button type="button" className="saved-go" onClick={() => navigate('/profile')}>
-              去查看
-              <CaretRight size={13} />
-            </button>
-          </div>
+          )}
+          {!user && (
+            <div className="saved-card enter">
+              <div className="saved-ico" aria-hidden="true">
+                <BookmarkSimple size={21} weight="duotone" />
+              </div>
+              <div className="saved-copy">
+                <p className="saved-title">收藏的文章都在这里</p>
+                <p className="saved-sub">登录后可同步收藏，随时回来接着读</p>
+              </div>
+              <button type="button" className="saved-go" onClick={() => navigate('/login')}>
+                去登录
+                <CaretRight size={13} />
+              </button>
+            </div>
+          )}
         </>
       )}
 

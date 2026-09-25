@@ -53,6 +53,14 @@ export function getDaily() {
   return request('/articles/daily')
 }
 
+export function getHotSearch() {
+  return request('/articles/search/hot')
+}
+
+export function getBookmarksRecent(limit) {
+  return request('/bookmarks/recent?limit=' + limit)
+}
+
 export function getTopics() {
   return request('/topics')
 }

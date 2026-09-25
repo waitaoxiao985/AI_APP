@@ -2106,3 +2106,17 @@ input[aria-invalid='true'] {
   font-size: 11px;
   color: var(--text-2);
 }
+
+/* ===== saved preview item ===== */
+
+.saved-item {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.7;
+}

@@ -31,6 +31,24 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.get('/recent', auth, async (req, res) => {
+  const raw = req.query.limit === undefined ? 3 : Number(req.query.limit);
+  if (!Number.isInteger(raw) || raw < 1) return res.status(400).json({ error: 'limit 参数无效' });
+  const limit = Math.min(raw, 20);
+  try {
+    const total = await query('SELECT count(*)::int AS n FROM bookmarks WHERE user_id = $1', [req.user.id]);
+    const result = await query(
+      `SELECT b.id, b.article_id, a.title, a.summary, a.category, a.read_time
+       FROM bookmarks b JOIN articles a ON a.id = b.article_id
+       WHERE b.user_id = $1 ORDER BY b.created_at DESC LIMIT $2`,
+      [req.user.id, limit]
+    );
+    res.json({ bookmarks: result.rows, total: total.rows[0].n });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '获取最近收藏失败' });
+  }
+});
 router.get('/check/:articleId', auth, async (req, res) => {
   try {
     const result = await query(
