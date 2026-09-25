@@ -877,6 +877,9 @@ input[aria-invalid='true'] {
 /* ---------- 详情页 ---------- */
 
 .detail-page {
+  /* 长文阅读区屏蔽 .app 的网格底纹：纹理留在列表页，正文区给干净底色 */
+  min-height: 100dvh;
+  background: var(--bg);
   padding-top: 78px;
   padding-bottom: 116px;
 }
