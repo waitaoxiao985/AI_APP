@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import articleRoutes from './routes/articles.js';
 import bookmarkRoutes from './routes/bookmarks.js';
+import topicRoutes from './routes/topics.js';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/topics', topicRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

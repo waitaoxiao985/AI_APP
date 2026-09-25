@@ -13,6 +13,8 @@ async function main() {
     console.log('数据库初始化成功：users / articles / bookmarks 三张表 + 10 篇入门种子文章');
     await runSeedFiles();
     console.log('深度长文写入完成');
+    await pool.query(sql);
+    console.log('专题映射已同步');
   } catch (err) {
     console.error('初始化失败:', err.message);
     process.exit(1);

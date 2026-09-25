@@ -60,3 +60,48 @@ WHERE NOT EXISTS (SELECT 1 FROM articles WHERE title = '开源大模型生态一
 INSERT INTO articles (title, summary, content, category, read_time)
 SELECT 'AI 在网络安全中的应用', '攻防两侧的智能化实践。', '在防御侧，AI 可用于日志异常检测、告警降噪和钓鱼邮件识别。\n\n在攻击侧，攻击者也在利用 AI 生成钓鱼文本和变形恶意代码。\n\n理解 AI 的能力边界，是安全从业者的必修课。', 'AI 安全', '7 分钟'
 WHERE NOT EXISTS (SELECT 1 FROM articles WHERE title = 'AI 在网络安全中的应用');
+
+CREATE TABLE IF NOT EXISTS topics (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(100) UNIQUE NOT NULL,
+  subtitle VARCHAR(300),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS topic_articles (
+  id SERIAL PRIMARY KEY,
+  topic_id INTEGER REFERENCES topics(id) ON DELETE CASCADE,
+  article_id INTEGER REFERENCES articles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(topic_id, article_id)
+);
+
+DROP INDEX IF EXISTS idx_topic_articles_topic;
+CREATE INDEX idx_topic_articles_topic ON topic_articles(topic_id);
+
+INSERT INTO topics (title, subtitle)
+SELECT '大模型入门专题', '从概念到架构，打好地基'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE title = '大模型入门专题');
+
+INSERT INTO topics (title, subtitle)
+SELECT '提示工程实战专题', '从基本原则到进阶技巧，一站读完'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE title = '提示工程实战专题');
+
+INSERT INTO topics (title, subtitle)
+SELECT 'AI 安全与对齐专题', '攻防、越狱与对齐的必修课'
+WHERE NOT EXISTS (SELECT 1 FROM topics WHERE title = 'AI 安全与对齐专题');
+
+INSERT INTO topic_articles (topic_id, article_id)
+SELECT t.id, a.id FROM topics t JOIN articles a ON a.category IN ('大模型基础', '架构原理')
+WHERE t.title = '大模型入门专题'
+  AND NOT EXISTS (SELECT 1 FROM topic_articles ta WHERE ta.topic_id = t.id AND ta.article_id = a.id);
+
+INSERT INTO topic_articles (topic_id, article_id)
+SELECT t.id, a.id FROM topics t JOIN articles a ON a.category IN ('提示工程', '应用实践')
+WHERE t.title = '提示工程实战专题'
+  AND NOT EXISTS (SELECT 1 FROM topic_articles ta WHERE ta.topic_id = t.id AND ta.article_id = a.id);
+
+INSERT INTO topic_articles (topic_id, article_id)
+SELECT t.id, a.id FROM topics t JOIN articles a ON a.category = 'AI 安全'
+WHERE t.title = 'AI 安全与对齐专题'
+  AND NOT EXISTS (SELECT 1 FROM topic_articles ta WHERE ta.topic_id = t.id AND ta.article_id = a.id);
