@@ -49,6 +49,10 @@ export function getArticles(category) {
   return request('/articles' + q)
 }
 
+export function getDaily() {
+  return request('/articles/daily')
+}
+
 export function searchArticles(keyword) {
   return request('/articles/search?q=' + encodeURIComponent(keyword))
 }

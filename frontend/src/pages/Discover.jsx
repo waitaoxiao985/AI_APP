@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, Clock, BookmarkSimple, CaretRight, Books } from '@phosphor-icons/react'
-import { getArticles } from '../api.js'
+import { getDaily } from '../api.js'
 
 export default function Discover() {
-  const [articles, setArticles] = useState([])
+  const [daily, setDaily] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
@@ -16,10 +16,10 @@ export default function Discover() {
     let alive = true
     setLoading(true)
     setError('')
-    getArticles('全部')
+    getDaily()
       .then((data) => {
         if (!alive) return
-        setArticles(data.articles)
+        setDaily(data.articles)
         setLoading(false)
       })
       .catch((err) => {
@@ -33,13 +33,13 @@ export default function Discover() {
   }, [reload])
 
   useEffect(() => {
-    if (articles.length < 2) return
+    if (daily.length < 2) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const id = setInterval(() => setSlide((s) => (s + 1) % Math.min(articles.length, 3)), 4500)
+    const id = setInterval(() => setSlide((s) => (s + 1) % Math.min(daily.length, 3)), 4500)
     return () => clearInterval(id)
-  }, [articles.length])
+  }, [daily.length])
 
-  const hero = articles.slice(0, 3)
+  const hero = daily
 
   function onTouchStart(e) {
     touchX.current = e.touches[0].clientX
@@ -154,7 +154,7 @@ export default function Discover() {
         </>
       )}
 
-      {!loading && !error && articles.length === 0 && (
+      {!loading && !error && daily.length === 0 && (
         <div className="empty enter">
           <div className="empty-art" aria-hidden="true">
             <Books size={23} />

@@ -22,6 +22,46 @@ router.get('/categories', async (req, res) => {
   }
 });
 
+export function dailyPicks(rows, seed, n = 3) {
+  const scored = rows.map((r) => {
+    let h = Math.imul(r.id ^ seed, 2654435761);
+    h = Math.imul(h ^ (h >>> 15), 2246822519);
+    h = Math.imul(h ^ (h >>> 13), 3266489917);
+    return { r, k: (h ^ (h >>> 16)) >>> 0 };
+  });
+  scored.sort((a, b) => a.k - b.k);
+  const picked = [];
+  const usedCats = new Set();
+  for (const { r } of scored) {
+    if (picked.length >= n) break;
+    if (!usedCats.has(r.category)) {
+      picked.push(r);
+      usedCats.add(r.category);
+    }
+  }
+  for (const { r } of scored) {
+    if (picked.length >= n) break;
+    if (!picked.includes(r)) picked.push(r);
+  }
+  return picked;
+}
+
+router.get('/daily', async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT id, title, summary, category, read_time, created_at FROM articles ORDER BY id'
+    );
+    const seed = Math.floor(Date.now() / 86400000);
+    res.json({
+      date: new Date().toISOString().slice(0, 10),
+      articles: dailyPicks(result.rows, seed)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '获取今日推荐失败' });
+  }
+});
+
 router.get('/search', async (req, res) => {
   const q = (req.query.q || '').trim();
   if (!q) return res.json({ articles: [] });
