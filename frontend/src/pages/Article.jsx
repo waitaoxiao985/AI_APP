@@ -1,7 +1,79 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { BookmarkSimple, CaretLeft, Clock } from '@phosphor-icons/react'
+import { BookmarkSimple, CaretLeft, Clock, LinkSimple } from '@phosphor-icons/react'
 import { getArticle, checkBookmark, addBookmark, removeBookmark } from '../api.js'
+
+function Inline({ text }) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g)
+  return parts.map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') && part.length > 4
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : <React.Fragment key={i}>{part}</React.Fragment>
+  )
+}
+
+function RefLine({ line }) {
+  const m = line.match(/^(原文链接|链接)[：:]\s*(https?:\/\/\S+)/)
+  if (m) {
+    return (
+      <p className="ref-link">
+        <LinkSimple size={12} weight="bold" style={{ verticalAlign: '-1px', marginRight: 4 }} />
+        {m[1]}：
+        <a href={m[2]} target="_blank" rel="noreferrer">{m[2]}</a>
+      </p>
+    )
+  }
+  return <p><Inline text={line} /></p>
+}
+
+function Block({ block, section }) {
+  const lines = block.split('\n').filter((l) => l.trim() !== '')
+  const head = block.trim()
+
+  if (head.startsWith('### ')) return <h3><Inline text={head.slice(4)} /></h3>
+  if (head.startsWith('## ')) return <h2><Inline text={head.slice(3)} /></h2>
+  if (head === '---') return <hr />
+
+  const isUl = lines.every((l) => l.trim().startsWith('- '))
+  const isOl = lines.every((l) => /^\d+\.\s/.test(l.trim()))
+
+  if (isUl) {
+    return (
+      <ul>{lines.map((l, i) => <li key={i}><Inline text={l.trim().slice(2)} /></li>)}</ul>
+    )
+  }
+  if (isOl) {
+    return (
+      <ol>{lines.map((l, i) => <li key={i}><Inline text={l.trim().replace(/^\d+\.\s/, '')} /></li>)}</ol>
+    )
+  }
+
+  if (section === 'refs') {
+    return (
+      <div className="ref-item">
+        {lines.map((l, i) => <RefLine key={i} line={l} />)}
+      </div>
+    )
+  }
+
+  return (
+    <p className={section === 'notice' ? 'notice-line' : undefined}>
+      <Inline text={block} />
+    </p>
+  )
+}
+
+function Content({ raw }) {
+  const blocks = raw.replace(/\\n/g, '\n').split(/\n\s*\n/).filter((b) => b.trim() !== '')
+  let section = 'body'
+  return blocks.map((block, i) => {
+    const head = block.trim()
+    if (head.startsWith('## 参考文献')) section = 'refs'
+    else if (head.startsWith('## 版权声明')) section = 'notice'
+    else if (head.startsWith('## ')) section = 'body'
+    return <Block key={i} block={block} section={head.startsWith('## ') ? 'head' : section} />
+  })
+}
 
 export default function Article({ user }) {
   const { id } = useParams()
@@ -62,9 +134,7 @@ export default function Article({ user }) {
             <span>{article.read_time}</span>
           </div>
           <div className="content">
-            {article.content.replace(/\\n/g, '\n').split('\n\n').map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            <Content raw={article.content} />
           </div>
         </div>
       )}

@@ -526,6 +526,93 @@ input:focus {
   margin-bottom: 18px;
 }
 
+.content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  margin: 32px 0 14px;
+  padding-left: 11px;
+  border-left: 3px solid var(--accent);
+}
+
+.content h3 {
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 24px 0 10px;
+}
+
+.content ul,
+.content ol {
+  margin: 0 0 18px;
+  padding-left: 21px;
+}
+
+.content li {
+  font-size: 15.5px;
+  line-height: 1.88;
+  letter-spacing: 0.012em;
+  color: var(--text);
+  margin-bottom: 9px;
+}
+
+.content li::marker {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.content hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+
+.content strong {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.content .ref-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-ctl);
+  padding: 12px 14px;
+  margin-bottom: 11px;
+}
+
+.content .ref-item p {
+  font-size: 12.5px;
+  line-height: 1.78;
+  color: var(--text-2);
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+
+.content .ref-item p:last-child {
+  margin-bottom: 0;
+}
+
+.content .ref-item .ref-link {
+  color: var(--text-3);
+}
+
+.content .ref-item a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+
+.content .notice-line {
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--text-3);
+  margin-bottom: 11px;
+}
+
 .action-bar {
   position: fixed;
   bottom: 0;

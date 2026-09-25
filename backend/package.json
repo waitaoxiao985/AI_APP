@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "node src/server.js",
-    "init-db": "node src/init-db.js"
+    "init-db": "node src/init-db.js",
+    "seed-deep": "node src/seed-deep.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
