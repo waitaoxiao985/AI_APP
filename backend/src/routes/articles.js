@@ -3,6 +3,10 @@ import { query } from '../db.js';
 
 const router = express.Router();
 
+function escapeLike(str) {
+  return str.replace(/[\\%_]/g, '\\$&');
+}
+
 router.get('/categories', async (req, res) => {
   try {
     const result = await query('SELECT DISTINCT category FROM articles ORDER BY category');
@@ -21,7 +25,7 @@ router.get('/search', async (req, res) => {
       `SELECT id, title, summary, category, read_time, created_at FROM articles
        WHERE title ILIKE $1 OR summary ILIKE $1 OR content ILIKE $1
        ORDER BY created_at DESC LIMIT 50`,
-      [`%${q}%`]
+      ['%' + escapeLike(q) + '%']
     );
     res.json({ articles: result.rows });
   } catch (err) {
@@ -32,8 +36,12 @@ router.get('/search', async (req, res) => {
 
 router.get('/', async (req, res) => {
   const { category } = req.query;
-  const limit = Number(req.query.limit) || 20;
-  const offset = Number(req.query.offset) || 0;
+  const limitRaw = req.query.limit === undefined ? 20 : Number(req.query.limit);
+  const offsetRaw = req.query.offset === undefined ? 0 : Number(req.query.offset);
+  if (!Number.isInteger(limitRaw) || limitRaw < 1 || !Number.isInteger(offsetRaw) || offsetRaw < 0) {
+    return res.status(400).json({ error: 'limit/offset 参数无效' });
+  }
+  const limit = Math.min(limitRaw, 100);
   try {
     const params = [];
     let where = '';
@@ -41,7 +49,7 @@ router.get('/', async (req, res) => {
       params.push(category);
       where = ' WHERE category = $1';
     }
-    params.push(limit, offset);
+    params.push(limit, offsetRaw);
     const result = await query(
       `SELECT id, title, summary, category, read_time, created_at FROM articles${where}
        ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -55,8 +63,11 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.status(400).json({ error: '文章 id 无效' });
+  const id = Number(req.params.id);
+  if (id < 1 || id > 2147483647) return res.status(400).json({ error: '文章 id 无效' });
   try {
-    const result = await query('SELECT * FROM articles WHERE id = $1', [req.params.id]);
+    const result = await query('SELECT * FROM articles WHERE id = $1', [id]);
     if (result.rows.length === 0) return res.status(404).json({ error: '文章不存在' });
     res.json({ article: result.rows[0] });
   } catch (err) {
