@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node src/server.js",
     "init-db": "node src/init-db.js",
-    "seed-deep": "node src/seed-deep.js"
+    "seed-deep": "node src/seed-deep.js",
+    "reset-db": "node src/reset-db.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
