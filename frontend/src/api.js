@@ -53,6 +53,14 @@ export function getDaily() {
   return request('/articles/daily')
 }
 
+export function getTopics() {
+  return request('/topics')
+}
+
+export function getTopic(id) {
+  return request('/topics/' + id)
+}
+
 export function searchArticles(keyword) {
   return request('/articles/search?q=' + encodeURIComponent(keyword))
 }

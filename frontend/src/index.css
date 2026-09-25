@@ -2041,3 +2041,68 @@ input[aria-invalid='true'] {
 .saved-go:hover {
   box-shadow: var(--glow-accent);
 }
+
+/* ===== topic detail + promo count ===== */
+
+.topic-page {
+  padding-top: 72px;
+}
+
+.topic-hero {
+  padding: 18px 16px 16px;
+  margin: 0 0 18px;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(125deg, rgba(0, 229, 255, 0.14), rgba(0, 229, 255, 0.03) 60%, rgba(245, 184, 61, 0.08));
+  box-shadow: var(--shadow-med);
+}
+
+.topic-kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+
+.topic-title {
+  margin-top: 10px;
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.topic-sub {
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-2);
+  letter-spacing: 0;
+}
+
+.topic-meta {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+.promo {
+  position: relative;
+}
+
+.promo-count {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong);
+  background: rgba(4, 7, 10, 0.55);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-2);
+}

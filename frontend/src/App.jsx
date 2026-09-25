@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { Compass, User } from '@phosphor-icons/react'
-import { getToken, removeToken, me } from './api.js'
+import { getToken, removeToken, me, getDaily } from './api.js'
 import Login from './pages/Login.jsx'
 import Discover from './pages/Discover.jsx'
 import Search from './pages/Search.jsx'
 import Article from './pages/Article.jsx'
 import Profile from './pages/Profile.jsx'
+import Topic from './pages/Topic.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function ScrollToTop() {
@@ -116,6 +117,16 @@ function Spotlight() {
   return <div className="spotlight" ref={ref} aria-hidden="true" />
 }
 
+function TodayRedirect() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    getDaily()
+      .then((d) => navigate(d.articles.length ? '/article/' + d.articles[0].id : '/', { replace: true }))
+      .catch(() => navigate('/', { replace: true }))
+  }, [navigate])
+  return null
+}
+
 export default function App() {
   const [user, setUser] = useState(null)
   const navigate = useNavigate()
@@ -138,7 +149,9 @@ export default function App() {
   }
 
   const hideTab =
-    location.pathname.startsWith('/login') || location.pathname.startsWith('/article/')
+    location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/article/') ||
+    location.pathname.startsWith('/topic/')
 
   return (
     <div className="app">
@@ -153,6 +166,8 @@ export default function App() {
           <Route path="/profile" element={<Profile user={user} logout={logout} />} />
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/article/:id" element={<Article user={user} />} />
+          <Route path="/topic/:id" element={<Topic />} />
+          <Route path="/today" element={<TodayRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

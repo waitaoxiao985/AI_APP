@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, Clock, BookmarkSimple, CaretRight, Books } from '@phosphor-icons/react'
-import { getDaily } from '../api.js'
+import { getDaily, getTopics } from '../api.js'
 
 export default function Discover() {
   const [daily, setDaily] = useState([])
+  const [topics, setTopics] = useState([])
+  const [promo, setPromo] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
@@ -16,10 +18,11 @@ export default function Discover() {
     let alive = true
     setLoading(true)
     setError('')
-    getDaily()
-      .then((data) => {
+    Promise.all([getDaily(), getTopics()])
+      .then(([dayData, topicData]) => {
         if (!alive) return
-        setDaily(data.articles)
+        setDaily(dayData.articles)
+        setTopics(topicData.topics)
         setLoading(false)
       })
       .catch((err) => {
@@ -39,7 +42,15 @@ export default function Discover() {
     return () => clearInterval(id)
   }, [daily.length])
 
+  useEffect(() => {
+    if (topics.length < 2) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const id = setInterval(() => setPromo((s) => (s + 1) % topics.length), 5200)
+    return () => clearInterval(id)
+  }, [topics.length])
+
   const hero = daily
+  const topic = topics[promo]
 
   function onTouchStart(e) {
     touchX.current = e.touches[0].clientX
@@ -119,17 +130,24 @@ export default function Discover() {
         </>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && topic && (
         <>
           <p className="sub-eyebrow module-head">专题</p>
-          <button type="button" className="promo enter" onClick={() => navigate('/search')}>
+          <button
+            type="button"
+            className="promo enter"
+            onClick={() => navigate('/topic/' + topic.id)}
+          >
             <span className="promo-copy">
-              <span className="promo-title">提示工程实战专题</span>
-              <span className="promo-sub">从基本原则到进阶技巧，一站读完</span>
+              <span className="promo-title">{topic.title}</span>
+              <span className="promo-sub">{topic.subtitle}</span>
             </span>
             <span className="promo-go">
               点击进入专题
               <CaretRight size={13} />
+            </span>
+            <span className="promo-count">
+              {promo + 1}/{topics.length}
             </span>
           </button>
         </>
