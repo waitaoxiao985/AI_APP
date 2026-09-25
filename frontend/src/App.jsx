@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Compass, MagnifyingGlass, User } from '@phosphor-icons/react'
 import { getToken, removeToken, me } from './api.js'
 import Login from './pages/Login.jsx'
 import Discover from './pages/Discover.jsx'
@@ -40,9 +41,30 @@ export default function App() {
 
       {!hideTab && (
         <nav className="tabbar">
-          <NavLink to="/" end className="tab">发现</NavLink>
-          <NavLink to="/search" className="tab">搜索</NavLink>
-          <NavLink to="/profile" className="tab">我的</NavLink>
+          <NavLink to="/" end className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
+            {({ isActive }) => (
+              <>
+                <Compass size={23} weight={isActive ? 'fill' : 'regular'} />
+                <span>发现</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/search" className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
+            {({ isActive }) => (
+              <>
+                <MagnifyingGlass size={23} weight={isActive ? 'fill' : 'regular'} />
+                <span>搜索</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink to="/profile" className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
+            {({ isActive }) => (
+              <>
+                <User size={23} weight={isActive ? 'fill' : 'regular'} />
+                <span>我的</span>
+              </>
+            )}
+          </NavLink>
         </nav>
       )}
     </div>
