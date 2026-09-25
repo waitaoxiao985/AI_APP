@@ -84,7 +84,7 @@ su - opengauss -c "gsql -d postgres -c \"CREATE USER appuser WITH PASSWORD 'Secu
 su - opengauss -c "gsql -d postgres -c \"CREATE DATABASE aiapp WITH ENCODING 'UTF8' OWNER appuser;\""
 ```
 
-确认 `postgresql.conf` 中 `listen_addresses = '*'`、`password_encryption_type = 2`，`pg_hba.conf` 放行应用机网段：
+确认 `postgresql.conf` 中 `listen_addresses = '*'`、`password_encryption_type = 0`，`pg_hba.conf` 放行应用机网段：
 
 ```
 host  all  all  192.168.159.0/24  md5
@@ -92,7 +92,9 @@ host  all  all  192.168.159.0/24  md5
 
 防火墙放行 7654 端口（openGauss 默认端口是 7654，不是 5432）。
 
-> 坑：openGauss 的 systemd 服务是 oneshot 类型，改配置后 `systemctl restart` 不会杀掉旧进程，必须先 `pkill -u opengauss` 再 `systemctl start`。
+> **坑 1**：`password_encryption_type` 必须是 `0`（标准 PostgreSQL md5）。默认值 `2` 是 sha256，openGauss 会走它自有的认证协议，`node-postgres` 无法完成握手（报 `Cannot read properties of undefined (reading 'message')`）。该参数是 postmaster 级，改完必须重启才生效。
+
+> **坑 2**：openGauss 的 systemd 服务是 oneshot 类型，改配置后 `systemctl restart` 不会杀掉旧进程，必须先 `pkill -u opengauss` 再 `systemctl start`。
 
 ### 2. 初始化表结构和种子数据
 
