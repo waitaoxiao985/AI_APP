@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { Compass, MagnifyingGlass, User } from '@phosphor-icons/react'
+import { Compass, User } from '@phosphor-icons/react'
 import { getToken, removeToken, me } from './api.js'
 import Login from './pages/Login.jsx'
 import Discover from './pages/Discover.jsx'
@@ -164,14 +164,6 @@ export default function App() {
               <>
                 <Compass size={21} weight={isActive ? 'fill' : 'regular'} />
                 <span>发现</span>
-              </>
-            )}
-          </NavLink>
-          <NavLink to="/search" className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
-            {({ isActive }) => (
-              <>
-                <MagnifyingGlass size={21} weight={isActive ? 'fill' : 'regular'} />
-                <span>搜索</span>
               </>
             )}
           </NavLink>
