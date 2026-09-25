@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -15,6 +15,7 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.4",
     "@vitejs/plugin-react": "^4.3.2",
     "vite": "^5.4.8",
     "vite-plugin-pwa": "^1.3.0"
