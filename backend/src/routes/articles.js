@@ -9,8 +9,13 @@ function escapeLike(str) {
 
 router.get('/categories', async (req, res) => {
   try {
-    const result = await query('SELECT DISTINCT category FROM articles ORDER BY category');
-    res.json({ categories: result.rows.map(r => r.category) });
+    const result = await query(
+      'SELECT category, count(*)::int AS count FROM articles GROUP BY category ORDER BY category'
+    );
+    res.json({
+      categories: result.rows.map(r => r.category),
+      counts: Object.fromEntries(result.rows.map(r => [r.category, r.count]))
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '获取分类失败' });
