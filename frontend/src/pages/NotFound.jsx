@@ -19,7 +19,7 @@ export default function NotFound() {
         <p className="empty-title typewriter">404 · 资源不存在</p>
         <p>该地址未返回内容。使用下方指令跳转到可用页面。</p>
         <div className="error-actions">
-          <button onClick={() => navigate('/')}>回到发现</button>
+          <button onClick={() => navigate('/')}>回到首页</button>
           <button className="btn-text" onClick={() => navigate('/search')}>
             去搜索
           </button>

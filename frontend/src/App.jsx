@@ -178,7 +178,7 @@ export default function App() {
             {({ isActive }) => (
               <>
                 <Compass size={21} weight={isActive ? 'fill' : 'regular'} />
-                <span>发现</span>
+                <span>首页</span>
               </>
             )}
           </NavLink>

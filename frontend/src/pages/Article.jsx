@@ -159,7 +159,7 @@ export default function Article({ user }) {
           <p className="empty-title">加载失败</p>
           <p>{error}</p>
           <div className="error-actions">
-            <button onClick={() => navigate('/')}>回到发现</button>
+            <button onClick={() => navigate('/')}>回到首页</button>
             <button className="btn-text" onClick={() => navigate('/search')}>
               去搜索
             </button>
