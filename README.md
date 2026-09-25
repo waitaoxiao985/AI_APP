@@ -1,161 +1,160 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# AI 知识库 App
 
-# AI 知识库应用
+一个面向 AI 学习者的轻量知识库应用，提供大模型、提示工程、AI 安全等方向的文章浏览、搜索、阅读与收藏功能。
 
-这是一个前后端一体的AI知识库应用，提供AI相关知识的浏览、搜索、收藏、学习进度跟踪、文章上传和管理功能。
+纯 JavaScript + JSX 直白写法，无复杂封装，适合作为学习与作品集项目。
 
-## 项目概述
+## 功能特性
 
-- **前端**：使用React 19、TypeScript、Tailwind CSS和Lucide React构建
-- **后端**：使用Express.js、TypeScript和Supabase构建
-- **数据库**：使用Supabase (PostgreSQL)
-- **管理员功能**：文章管理、状态审核、批量操作等
+核心五件套：
+
+1. **浏览与分类筛选** — 首页文章列表，按分类（大模型基础 / 架构原理 / 提示工程 / AI 安全 / 应用实践）筛选
+2. **搜索** — 按关键词搜索文章标题、摘要、正文
+3. **详情阅读** — 文章全文阅读，显示分类与阅读时长
+4. **收藏** — 登录后可收藏 / 取消收藏文章，在「我的」查看收藏列表
+5. **登录注册** — 用户名 + 密码注册登录（bcrypt 加密 + JWT 令牌）
 
 ## 技术栈
 
-### 前端
-- React 19
-- TypeScript
-- Tailwind CSS
-- Lucide React
-- Vite
-- Motion React (动画效果)
-
-### 后端
-- Express.js
-- TypeScript
-- Supabase
-- JWT认证
+| 层 | 技术 |
+|---|---|
+| 前端 | React 18 + React Router 6 + Vite 5（纯 JavaScript/JSX） |
+| 后端 | Node.js + Express 4 + pg（PostgreSQL 驱动） |
+| 数据库 | openGauss（兼容 PostgreSQL 协议） |
+| 认证 | bcryptjs 密码加密 + jsonwebtoken（JWT，7 天有效） |
 
 ## 项目结构
 
 ```
 AI_APP/
-├── src/              # 前端代码
-│   ├── services/     # API服务封装
-│   ├── App.tsx       # 主应用组件
-│   └── main.tsx      # 应用入口
-├── backend/          # 后端代码
-│   ├── config/       # 配置文件
-│   ├── routes/       # API路由
-│   ├── migrations/   # 数据库迁移文件
-│   └── server.ts     # 后端服务器
-├── .env.example      # 环境变量示例
-└── README.md         # 项目说明
+├── backend/                  后端服务
+│   ├── package.json
+│   ├── .env.example          环境变量模板
+│   ├── init.sql              建表 + 10 篇种子文章
+│   └── src/
+│       ├── server.js         Express 入口（端口 3003）
+│       ├── db.js             pg 连接池
+│       ├── init-db.js        一键初始化数据库脚本
+│       └── routes/
+│           ├── auth.js       注册 / 登录 / 我的信息
+│           ├── articles.js   文章列表 / 分类 / 搜索 / 详情
+│           └── bookmarks.js  收藏列表 / 加收藏 / 取消收藏
+├── frontend/                 前端应用
+│   ├── package.json
+│   ├── vite.config.js        开发端口 5173，/api 代理到 3003
+│   ├── index.html
+│   └── src/
+│       ├── main.jsx          React 挂载入口
+│       ├── App.jsx           路由 + 底部导航
+│       ├── api.js            fetch 封装 + token 管理
+│       ├── index.css         全局样式
+│       └── pages/
+│           ├── Login.jsx     登录 / 注册
+│           ├── Discover.jsx  发现（列表 + 分类）
+│           ├── Search.jsx    搜索
+│           ├── Article.jsx   文章详情 + 收藏
+│           └── Profile.jsx   我的（收藏 + 退出）
+├── README.md
+└── .gitignore
 ```
 
-## 运行步骤
-
-### 前端
-
-**前置条件:** Node.js
-
-1. 安装依赖:
-   ```bash
-   npm install
-   ```
-2. 设置环境变量:
-   - 复制 `.env.example` 文件为 `.env.local`
-   - 设置 `GEMINI_API_KEY` 为你的Gemini API密钥
-3. 运行应用:
-   ```bash
-   npm run dev
-   ```
-   前端默认运行在 `http://localhost:3002`
-
-### 后端
-
-1. 进入后端目录:
-   ```bash
-   cd backend
-   ```
-2. 安装依赖:
-   ```bash
-   npm install
-   ```
-3. 设置环境变量:
-   - 复制 `.env.example` 文件为 `.env`
-   - 配置Supabase连接信息（可选，默认使用模拟数据）
-4. 运行后端服务:
-   ```bash
-   npm run dev
-   ```
-   后端默认运行在 `http://localhost:3003`
-
-## 环境变量配置
-
-### 前端 (.env.local)
+## 运行拓扑
 
 ```
-# Gemini API密钥
-GEMINI_API_KEY="your-gemini-api-key"
-
-# 应用URL
-APP_URL="http://localhost:3000"
+浏览器 → 前端 Vite (5173) ──代理 /api──→ 后端 Express (3003) ──pg──→ openGauss (192.168.159.134:7654)
 ```
 
-### 后端 (.env)
+- 前端、后端可跑在同一台机器（开发机 / 宿主机）
+- 数据库跑在独立的 openEuler 虚拟机（openGauss），走 TCP 7654 端口
+
+## 环境要求
+
+- Node.js 18+（开发时使用 v24）
+- npm 9+
+- openGauss 2.1+（或任意 PostgreSQL 兼容数据库）
+
+## 部署运行
+
+### 1. 准备数据库（openGauss）
+
+在 openGauss 所在机器上执行（超管 `opengauss`）：
+
+```bash
+su - opengauss -c "gsql -d postgres -c \"CREATE USER appuser WITH PASSWORD 'Secure@2026';\""
+su - opengauss -c "gsql -d postgres -c \"CREATE DATABASE aiapp WITH ENCODING 'UTF8' OWNER appuser;\""
+```
+
+确认 `postgresql.conf` 中 `listen_addresses = '*'`、`password_encryption_type = 2`，`pg_hba.conf` 放行应用机网段：
 
 ```
-# Supabase配置
-SUPABASE_URL="https://your-project-id.supabase.co"
-SUPABASE_ANON_KEY="your-anon-key"
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+host  all  all  192.168.159.0/24  md5
+```
 
-# JWT配置
-JWT_SECRET="your-jwt-secret-key"
-JWT_EXPIRES_IN="24h"
+防火墙放行 7654 端口（openGauss 默认端口是 7654，不是 5432）。
 
-# 服务器配置
+> 坑：openGauss 的 systemd 服务是 oneshot 类型，改配置后 `systemctl restart` 不会杀掉旧进程，必须先 `pkill -u opengauss` 再 `systemctl start`。
+
+### 2. 初始化表结构和种子数据
+
+```bash
+cd backend
+npm install
+copy .env.example .env    # 按实际环境修改数据库连接信息
+npm run init-db           # 建 users / articles / bookmarks 三张表 + 10 篇种子文章
+```
+
+`.env` 示例：
+
+```
+DB_HOST=192.168.159.134
+DB_PORT=7654
+DB_NAME=aiapp
+DB_USER=appuser
+DB_PASSWORD=Secure@2026
+JWT_SECRET=ai-app-secret-2026
 PORT=3003
-NODE_ENV="development"
 ```
 
-## API文档
+### 3. 启动后端
 
-### 认证API
-- `POST /api/auth/register` - 用户注册
-- `POST /api/auth/login` - 用户登录
-- `GET /api/auth/me` - 获取当前用户信息
+```bash
+npm run dev
+# 后端已启动 http://localhost:3003
+```
 
-### 文章API
-- `GET /api/articles` - 获取文章列表
-- `GET /api/articles/:id` - 获取文章详情
-- `GET /api/articles/search` - 搜索文章
-- `POST /api/articles` - 创建文章
-- `PUT /api/articles/:id` - 更新文章
-- `DELETE /api/articles/:id` - 删除文章
+### 4. 启动前端
 
-### 分类API
-- `GET /api/categories` - 获取分类列表
-- `GET /api/categories/:id` - 获取分类详情
+```bash
+cd ../frontend
+npm install
+npm run dev
+# 打开 http://localhost:5173
+```
 
-### 用户API
-- `GET /api/users/profile` - 获取用户资料
-- `PUT /api/users/profile` - 更新用户资料
-- `PUT /api/users/preferences` - 更新用户偏好设置
-- `GET /api/users/bookmarks` - 获取用户收藏
-- `POST /api/users/bookmarks` - 添加收藏
-- `DELETE /api/users/bookmarks/:id` - 删除收藏
-- `GET /api/users/progress` - 获取用户阅读进度
-- `POST /api/users/progress` - 更新阅读进度
+## API 接口
 
-### 管理员API
-- `POST /api/admin/login` - 管理员登录
-- `GET /api/admin/articles` - 获取所有文章（包括待审核）
-- `PUT /api/admin/articles/:id/status` - 更新文章状态
-- `PUT /api/admin/articles/:id` - 编辑文章
-- `DELETE /api/admin/articles/:id` - 删除文章
+| 方法 | 路径 | 说明 | 鉴权 |
+|---|---|---|---|
+| POST | /api/auth/register | 注册（username/password/nickname） | 否 |
+| POST | /api/auth/login | 登录 | 否 |
+| GET | /api/auth/me | 获取当前用户 | 是 |
+| GET | /api/articles | 文章列表（支持 category 分页） | 否 |
+| GET | /api/articles/categories | 全部分类 | 否 |
+| GET | /api/articles/search?q= | 搜索文章 | 否 |
+| GET | /api/articles/:id | 文章详情 | 否 |
+| GET | /api/bookmarks | 我的收藏列表 | 是 |
+| GET | /api/bookmarks/check/:articleId | 是否已收藏 | 是 |
+| POST | /api/bookmarks | 加收藏 | 是 |
+| DELETE | /api/bookmarks/:articleId | 取消收藏 | 是 |
 
-## 注意事项
+鉴权方式：请求头 `Authorization: Bearer <token>`。
 
-- 后端服务默认运行在 `http://localhost:3003`
-- 前端应用默认运行在 `http://localhost:3002`
-- 如果未配置Supabase，后端会使用模拟数据
-- 模拟用户凭据：
-  - 邮箱: user@example.com
-  - 密码: password123
-- 管理员登录凭据：
-  - 密码: admin123
+## 数据库表
+
+| 表 | 字段 |
+|---|---|
+| users | id, username(唯一), password(bcrypt), nickname, created_at |
+| articles | id, title, summary, content, category, read_time, created_at |
+| bookmarks | id, user_id, article_id, created_at（user_id + article_id 唯一） |
+
+种子数据：10 篇 AI 方向文章（大模型基础 / 架构原理 / 提示工程 / AI 安全 / 应用实践）。
