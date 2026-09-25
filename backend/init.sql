@@ -105,3 +105,46 @@ INSERT INTO topic_articles (topic_id, article_id)
 SELECT t.id, a.id FROM topics t JOIN articles a ON a.category = 'AI 安全'
 WHERE t.title = 'AI 安全与对齐专题'
   AND NOT EXISTS (SELECT 1 FROM topic_articles ta WHERE ta.topic_id = t.id AND ta.article_id = a.id);
+
+CREATE TABLE IF NOT EXISTS search_logs (
+  id SERIAL PRIMARY KEY,
+  term VARCHAR(100) UNIQUE NOT NULL,
+  hits INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS idx_search_logs_hits;
+CREATE INDEX idx_search_logs_hits ON search_logs(hits);
+
+INSERT INTO search_logs (term, hits)
+SELECT 'Transformer', 26
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = 'Transformer');
+
+INSERT INTO search_logs (term, hits)
+SELECT 'RAG', 22
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = 'RAG');
+
+INSERT INTO search_logs (term, hits)
+SELECT '提示工程', 19
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = '提示工程');
+
+INSERT INTO search_logs (term, hits)
+SELECT 'LoRA', 15
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = 'LoRA');
+
+INSERT INTO search_logs (term, hits)
+SELECT 'AI 安全', 14
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = 'AI 安全');
+
+INSERT INTO search_logs (term, hits)
+SELECT 'Agent', 12
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = 'Agent');
+
+INSERT INTO search_logs (term, hits)
+SELECT '大模型', 10
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = '大模型');
+
+INSERT INTO search_logs (term, hits)
+SELECT '多模态', 8
+WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = '多模态');

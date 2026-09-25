@@ -62,6 +62,30 @@ router.get('/daily', async (req, res) => {
   }
 });
 
+function logSearch(term) {
+  const t = term.slice(0, 100);
+  query('UPDATE search_logs SET hits = hits + 1, updated_at = CURRENT_TIMESTAMP WHERE term = $1', [t])
+    .then(() =>
+      query(
+        'INSERT INTO search_logs (term, hits) SELECT $1::varchar(100), 1 WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = $1)',
+        [t]
+      )
+    )
+    .catch((e) => console.error('logSearch failed:', e.message));
+}
+
+router.get('/search/hot', async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT term FROM search_logs ORDER BY hits DESC, updated_at DESC LIMIT 8'
+    );
+    res.json({ hot: result.rows.map((r) => r.term) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '获取热词失败' });
+  }
+});
+
 router.get('/search', async (req, res) => {
   const q = (req.query.q || '').trim();
   if (!q) return res.json({ articles: [] });
@@ -73,6 +97,7 @@ router.get('/search', async (req, res) => {
       ['%' + escapeLike(q) + '%']
     );
     res.json({ articles: result.rows });
+    logSearch(q);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '搜索失败' });
