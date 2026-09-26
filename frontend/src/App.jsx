@@ -99,7 +99,7 @@ function Spotlight() {
       y = e.clientY
       if (!raf) raf = requestAnimationFrame(paint)
       const target = e.target instanceof Element ? e.target : null
-      const onPanel = !!(target && target.closest('.feature, .row, .center, .user-card, .login-card'))
+      const onPanel = !!(target && target.closest('.row, .center, .user-card, .login-card'))
       el.classList.toggle('on', onPanel)
     }
 
