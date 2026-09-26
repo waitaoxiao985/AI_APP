@@ -8,13 +8,14 @@ const sql = fs.readFileSync(path.join(__dirname, '..', 'init.sql'), 'utf8');
 
 async function main() {
   try {
+    await pool.query('DROP TABLE IF EXISTS news');
     await pool.query('DROP TABLE IF EXISTS search_logs');
     await pool.query('DROP TABLE IF EXISTS topic_articles');
     await pool.query('DROP TABLE IF EXISTS topics');
     await pool.query('DROP TABLE IF EXISTS bookmarks');
     await pool.query('DROP TABLE IF EXISTS articles');
     await pool.query('DROP TABLE IF EXISTS users');
-    console.log('已清空 search_logs / topic_articles / topics / bookmarks / articles / users');
+    console.log('已清空 news / search_logs / topic_articles / topics / bookmarks / articles / users');
     await pool.query(sql);
     console.log('表结构重建完成，入门种子文章与专题写入完成');
     const seedFile = path.join(__dirname, '..', 'seed-deep-articles.sql');

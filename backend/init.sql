@@ -148,3 +148,17 @@ WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = '大模型');
 INSERT INTO search_logs (term, hits)
 SELECT '多模态', 8
 WHERE NOT EXISTS (SELECT 1 FROM search_logs WHERE term = '多模态');
+
+CREATE TABLE IF NOT EXISTS news (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(300) NOT NULL,
+  link VARCHAR(500) UNIQUE NOT NULL,
+  source VARCHAR(100),
+  published_at TIMESTAMP,
+  excerpt VARCHAR(500),
+  content TEXT,
+  fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS idx_news_published;
+CREATE INDEX idx_news_published ON news(published_at);
