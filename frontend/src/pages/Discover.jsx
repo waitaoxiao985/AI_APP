@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, Clock, BookmarkSimple, CaretRight, Books } from '@phosphor-icons/react'
-import { getDaily, getTopics, getBookmarksRecent } from '../api.js'
+import { getDaily, getTopics, getBookmarksRecent, getNews } from '../api.js'
 
 export default function Discover({ user }) {
   const [daily, setDaily] = useState([])
@@ -13,6 +13,7 @@ export default function Discover({ user }) {
   const [slide, setSlide] = useState(0)
   const [recent, setRecent] = useState([])
   const [favTotal, setFavTotal] = useState(0)
+  const [news, setNews] = useState([])
   const navigate = useNavigate()
   const touchX = useRef(0)
 
@@ -39,11 +40,12 @@ export default function Discover({ user }) {
     let alive = true
     setLoading(true)
     setError('')
-    Promise.all([getDaily(), getTopics()])
-      .then(([dayData, topicData]) => {
+    Promise.all([getDaily(), getTopics(), getNews(6)])
+      .then(([dayData, topicData, newsData]) => {
         if (!alive) return
         setDaily(dayData.articles)
         setTopics(topicData.topics)
+        setNews(newsData.news)
         setLoading(false)
       })
       .catch((err) => {
@@ -171,6 +173,29 @@ export default function Discover({ user }) {
               {promo + 1}/{topics.length}
             </span>
           </button>
+        </>
+      )}
+
+      {!loading && !error && news.length > 0 && (
+        <>
+          <div className="module-head-row">
+            <p className="sub-eyebrow module-head">AI 快讯</p>
+            <Link className="module-more" to="/news">
+              更多
+              <CaretRight size={12} />
+            </Link>
+          </div>
+          <section className="news-strip enter" aria-label="AI 快讯">
+            {news.map((n) => (
+              <Link key={n.id} to={'/news/' + n.id} className="news-card">
+                <span className="news-source">{n.source}</span>
+                <p className="news-title">{n.title}</p>
+                <span className="news-time">
+                  {n.published_at ? new Date(n.published_at).toLocaleDateString('zh-CN') : ''}
+                </span>
+              </Link>
+            ))}
+          </section>
         </>
       )}
 

@@ -61,6 +61,14 @@ export function getBookmarksRecent(limit) {
   return request('/bookmarks/recent?limit=' + limit)
 }
 
+export function getNews(limit) {
+  return request('/news' + (limit ? '?limit=' + limit : ''))
+}
+
+export function getNewsItem(id) {
+  return request('/news/' + id)
+}
+
 export function getTopics() {
   return request('/topics')
 }

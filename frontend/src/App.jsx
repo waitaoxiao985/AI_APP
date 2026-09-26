@@ -8,6 +8,8 @@ import Search from './pages/Search.jsx'
 import Article from './pages/Article.jsx'
 import Profile from './pages/Profile.jsx'
 import Topic from './pages/Topic.jsx'
+import News from './pages/News.jsx'
+import NewsDetail from './pages/NewsDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function ScrollToTop() {
@@ -151,7 +153,8 @@ export default function App() {
   const hideTab =
     location.pathname.startsWith('/login') ||
     location.pathname.startsWith('/article/') ||
-    location.pathname.startsWith('/topic/')
+    location.pathname.startsWith('/topic/') ||
+    location.pathname.startsWith('/news/')
 
   return (
     <div className="app">
@@ -167,6 +170,8 @@ export default function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/article/:id" element={<Article user={user} />} />
           <Route path="/topic/:id" element={<Topic />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/today" element={<TodayRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
