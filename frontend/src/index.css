@@ -1945,3 +1945,39 @@ input[aria-invalid='true'] {
 .action-btn:hover {
   box-shadow: var(--glow-accent);
 }
+
+/* ===== carousel arrows ===== */
+
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: rgba(4, 7, 10, 0.55);
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity var(--dur-normal) var(--ease), box-shadow var(--dur-normal) var(--ease);
+}
+
+.carousel-arrow:hover,
+.carousel-arrow:focus-visible {
+  opacity: 1;
+  box-shadow: var(--glow-accent);
+}
+
+.carousel-prev {
+  left: 8px;
+}
+
+.carousel-next {
+  right: 8px;
+}

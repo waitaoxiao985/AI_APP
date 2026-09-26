@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MagnifyingGlass, Clock, BookmarkSimple, CaretRight, Books } from '@phosphor-icons/react'
+import { MagnifyingGlass, Clock, BookmarkSimple, CaretLeft, CaretRight, Books } from '@phosphor-icons/react'
 import { getDaily, getTopics, getBookmarksRecent, getNews } from '../api.js'
 
 export default function Discover({ user }) {
@@ -126,6 +126,16 @@ export default function Discover({ user }) {
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
+            {hero.length > 1 && (
+              <button
+                type="button"
+                className="carousel-arrow carousel-prev"
+                aria-label="上一篇"
+                onClick={() => setSlide((s) => (s - 1 + hero.length) % hero.length)}
+              >
+                <CaretLeft size={16} />
+              </button>
+            )}
             {hero.map((a, i) => (
               <Link
                 key={a.id}
@@ -149,6 +159,16 @@ export default function Discover({ user }) {
                 </span>
               </Link>
             ))}
+            {hero.length > 1 && (
+              <button
+                type="button"
+                className="carousel-arrow carousel-next"
+                aria-label="下一篇"
+                onClick={() => setSlide((s) => (s + 1) % hero.length)}
+              >
+                <CaretRight size={16} />
+              </button>
+            )}
           </section>
         </>
       )}
