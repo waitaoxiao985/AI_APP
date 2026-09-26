@@ -60,7 +60,8 @@ async function insertNews(item) {
   );
 }
 
-async function fetchSource(parser, source) {
+async function fetchSource(source) {
+  const parser = new Parser({ timeout: 12000 });
   const feed = await parser.parseURL(source.url);
   let scanned = 0;
   const excerptOnly = EXCERPT_ONLY_SOURCES.has(source.name);
@@ -89,15 +90,14 @@ async function fetchSource(parser, source) {
 }
 
 export async function syncNews() {
-  const parser = new Parser({ timeout: 15000 });
-  for (const source of SOURCES) {
-    try {
-      const scanned = await fetchSource(parser, source);
-      console.log(`[ok] ${source.name}: 扫描 ${scanned} 条`);
-    } catch (err) {
-      console.log(`[skip] ${source.name}: ${err.message}`);
+  const results = await Promise.allSettled(SOURCES.map((source) => fetchSource(source)));
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      console.log(`[ok] ${SOURCES[i].name}: 扫描 ${r.value} 条`);
+    } else {
+      console.log(`[skip] ${SOURCES[i].name}: ${r.reason && r.reason.message}`);
     }
-  }
+  });
   await query(
     'DELETE FROM news WHERE id NOT IN (SELECT id FROM news ORDER BY fetched_at DESC, id DESC LIMIT ' + MAX_NEWS + ')'
   );

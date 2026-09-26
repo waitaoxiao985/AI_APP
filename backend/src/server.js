@@ -19,10 +19,23 @@ app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
 
-app.get('/api/news/sync', (req, res) => {
+app.get('/api/news/sync', async (req, res) => {
   const token = process.env.SYNC_TOKEN;
-  if (!token || req.query.token !== token) {
+  const authed =
+    (token && req.query.token === token) ||
+    (process.env.CRON_SECRET && req.headers.authorization === 'Bearer ' + process.env.CRON_SECRET);
+  if (!authed) {
     return res.status(401).json({ error: 'token 无效' });
+  }
+  if (process.env.VERCEL) {
+    try {
+      const total = await syncNews();
+      res.json({ ok: true, total });
+    } catch (e) {
+      console.error('新闻采集失败（手动触发）:', e.message);
+      res.status(500).json({ error: '采集失败' });
+    }
+    return;
   }
   res.json({ ok: true, started: true });
   syncNews()
@@ -47,8 +60,12 @@ function runNewsSync(tag) {
     .catch((e) => console.error(`新闻采集失败（${tag}）: `, e.message));
 }
 
-cron.schedule('30 8 * * *', () => runNewsSync('定时 08:30'));
-runNewsSync('启动补跑');
-
 const PORT = process.env.PORT || 3003;
-app.listen(PORT, () => console.log(`后端已启动: http://localhost:${PORT}`));
+
+if (!process.env.VERCEL) {
+  cron.schedule('30 8 * * *', () => runNewsSync('定时 08:30'));
+  runNewsSync('启动补跑');
+  app.listen(PORT, () => console.log(`后端已启动: http://localhost:${PORT}`));
+}
+
+export default app;
