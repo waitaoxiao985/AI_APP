@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { CaretLeft, Clock, Books } from '@phosphor-icons/react'
 import { getTopic } from '../api.js'
+import { relTime } from '../time.js'
 
 export default function Topic() {
   const { id } = useParams()
@@ -80,7 +81,7 @@ export default function Topic() {
               <div className="empty-art" aria-hidden="true">
                 <Books size={23} />
               </div>
-              <p className="empty-title typewriter">暂无内容</p>
+              <p className="empty-title">暂无内容</p>
               <p className="empty-copy">该专题还没有收录文章，稍后再来看看。</p>
             </div>
           )}
@@ -93,10 +94,16 @@ export default function Topic() {
                   <span className="tag">{a.category}</span>
                   <h3>{a.title}</h3>
                   <p>{a.summary}</p>
-                  <div className="meta">
-                    <Clock size={12} />
-                    <span>{a.read_time}</span>
-                  </div>
+                <div className="meta">
+                  <Clock size={12} />
+                  <span>{a.read_time}</span>
+                  {a.created_at && (
+                    <>
+                      <span className="meta-dot" aria-hidden="true" />
+                      <span>{relTime(a.created_at)}</span>
+                    </>
+                  )}
+                </div>
                 </div>
               </Link>
             ))}

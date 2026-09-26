@@ -30,9 +30,11 @@ export default function NewsDetail() {
     }
   }, [id])
 
-  const paragraphs = item
-    ? (item.content || item.excerpt || '').split('\n\n').filter((p) => p.trim())
-    : []
+  const body =
+    item && item.content && item.content.trim().length >= 60 ? item.content : '';
+  const paragraphs = body ? body.split('\n\n').filter((p) => p.trim()) : [];
+  const snippet = item && !body ? (item.excerpt || '').trim() : '';
+  const showSnippet = snippet.length >= 30;
 
   return (
     <div className="page detail-page">
@@ -70,11 +72,25 @@ export default function NewsDetail() {
             </span>
           </div>
           <h1>{item.title}</h1>
-          <div className="content">
-            {paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
+
+          {paragraphs.length > 0 && (
+            <div className="content">
+              {paragraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          )}
+
+          {!body && (
+            <div className="news-lead enter" style={{ '--i': 1 }}>
+              <p className="news-lead-title">源站未提供正文</p>
+              <p className="news-lead-copy">
+                该条目的 RSS 未附完整正文，本应用不做全文提取。
+                点击下方「阅读原文」前往源站阅读。
+              </p>
+              {showSnippet && <p className="news-lead-snippet">{snippet}</p>}
+            </div>
+          )}
         </div>
       )}
 

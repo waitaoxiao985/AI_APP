@@ -16,7 +16,7 @@ export default function NotFound() {
         <div className="empty-art" aria-hidden="true">
           <Compass size={24} />
         </div>
-        <p className="empty-title typewriter">404 · 资源不存在</p>
+        <p className="empty-title">404 · 资源不存在</p>
         <p>该地址未返回内容。使用下方指令跳转到可用页面。</p>
         <div className="error-actions">
           <button onClick={() => navigate('/')}>回到首页</button>

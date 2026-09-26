@@ -1,0 +1,357 @@
+{
+  "meta": {
+    "name": "AI Blue Feed / 深蓝内容流",
+    "description": "深蓝近黑底 + 单一蓝色强调 + 冷灰中性色的内容型信息流界面：无衬线字体、圆角卡片、以配图主导视觉重量，无网格噪点与终端元素。由参考截图的确定性测色结果驱动。",
+    "source_references": [
+      "image: C:/Users/小外套/Downloads/file_00000000777c8206acdf335ad0003542.png (992x1586 手机 mockup)",
+      "cropped: 屏幕区域 x=200 y=59 w=594 h=1486，剔除 mockup 外圈模糊背景"
+    ],
+    "created_at": "2026-09-26"
+  },
+
+  "design_system": {
+    "color": {
+      "palette_type": "monochromatic",
+      "primary": {
+        "hex": "#2977cb",
+        "role": "品牌主蓝：导航激活态、选中分类 chip、强调标记与 CTA 填充"
+      },
+      "secondary": {
+        "hex": "#124580",
+        "role": "中蓝：图片区块暗部过渡与装饰性渐变的深端"
+      },
+      "accent": {
+        "hex": "#2977cb",
+        "role": "CTA 强调 —— 测得 role=accent；本设计为单色蓝体系，与 primary 同值，仅在激活态与强调点出现"
+      },
+      "neutral": {
+        "scale": [
+          "#d9e4eb",
+          "#b6c4d1",
+          "#89a5bc",
+          "#585a6d",
+          "#3e4557",
+          "#2a3040",
+          "#141a26",
+          "#060b12"
+        ],
+        "usage": "由亮到暗单向排列，全族同为冷蓝灰。#d9e4eb（测得 text）承载正文与标题，对 #060b12 约 16:1；#b6c4d1 用于次要说明；#89a5bc（测得）用于元信息与占位提示；#585a6d（测得）用于图标与弱化标签；#3e4557 以下仅用于分隔、禁用态与图片占位边框，不承载可读文字"
+      },
+      "semantic": {
+        "success": "#3ecf8e",
+        "warning": "#f0a63c",
+        "error": "#f2555a",
+        "info": "#4f9bf0"
+      },
+      "surface": {
+        "background": "#060b12",
+        "card": "#0c2340",
+        "elevated": "#124580"
+      },
+      "contrast_strategy": "high contrast — 近白正文对近黑底保持 16:1，次级文字 7:1；蓝色只在激活态与强调点小面积出现，不铺大面积，避免蓝光过载",
+      "measurement": {
+        "k": 8,
+        "sampling": {
+          "method": "deterministic_stratified",
+          "max_pixels": 160000,
+          "sampled_pixels": 160000
+        }
+      },
+      "measured_palette": [
+        { "hex": "#060b12", "coverage": 0.7078, "role": "background" },
+        { "hex": "#0c2340", "coverage": 0.1200, "role": "unassigned" },
+        { "hex": "#124580", "coverage": 0.0625, "role": "unassigned" },
+        { "hex": "#2977cb", "coverage": 0.0335, "role": "accent" },
+        { "hex": "#585a6d", "coverage": 0.0265, "role": "unassigned" },
+        { "hex": "#89a5bc", "coverage": 0.0256, "role": "unassigned" },
+        { "hex": "#d9e4eb", "coverage": 0.0205, "role": "text" },
+        { "hex": "#b6633b", "coverage": 0.0037, "role": "unassigned" }
+      ]
+    },
+
+    "typography": {
+      "type_scale": {
+        "display": { "size": "30px", "weight": 700, "line_height": 1.3, "tracking": "-0.015em" },
+        "heading_1": { "size": "26px", "weight": 700, "line_height": 1.35, "tracking": "-0.012em" },
+        "heading_2": { "size": "19px", "weight": 700, "line_height": 1.45, "tracking": "-0.005em" },
+        "heading_3": { "size": "16px", "weight": 600, "line_height": 1.5, "tracking": "0" },
+        "body": { "size": "15px", "weight": 400, "line_height": 1.7, "tracking": "0" },
+        "body_small": { "size": "13.5px", "weight": 400, "line_height": 1.6, "tracking": "0" },
+        "caption": { "size": "12px", "weight": 400, "line_height": 1.5, "tracking": "0.01em" },
+        "overline": { "size": "12px", "weight": 600, "line_height": 1.2, "tracking": "0.08em" }
+      },
+      "font_families": {
+        "heading": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif",
+        "body": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif",
+        "mono": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+      },
+      "font_style_notes": "参考图为标准系统无衬线（SF Pro / 思源黑体一类），字面中性、笔画均匀，标题靠字重与字号而非字形取差异。标题与正文同族，不混排等宽；mono 仅保留给需要对齐的数字位，并配合 font-variant-numeric: tabular-nums。不加载任何标题网络字体。"
+    },
+
+    "spacing": {
+      "base_unit": "4px",
+      "scale": ["4px", "8px", "12px", "16px", "20px", "24px", "32px", "48px"],
+      "content_density": "comfortable",
+      "section_rhythm": "卡片内距 14-16px，卡与卡之间 12px，模块与模块之间 24px，跨大区 32px；组内间距恒小于组间距以维持分组感"
+    },
+
+    "layout": {
+      "grid_system": "单列流式；列表行为「固定 88px 缩略图 + 自适应内容」的两栏结构",
+      "max_content_width": "480px（移动壳）/ 1200px（桌面容器）",
+      "columns": "1（移动内容列）",
+      "gutter": "16px",
+      "breakpoints": ["640px", "768px", "1024px", "1440px"],
+      "alignment_tendency": "mixed — 文字与元信息一律左对齐，顶部品牌区与底部导航横向分布，hero 为全出血居中构图"
+    },
+
+    "shape": {
+      "border_radius": {
+        "small": "8px",
+        "medium": "14px",
+        "large": "20px",
+        "pill": "999px"
+      },
+      "border_usage": "none — 卡片不描边，靠底色明度差与阴影分层；仅输入框与次级按钮使用 1px 淡描边",
+      "divider_style": "无分隔线；卡片之间用 12px 间距与独立底色分组，列表内部不画横线"
+    },
+
+    "elevation": {
+      "shadow_style": "soft diffused — 低透明度冷蓝投影，不使用发光或硬偏移",
+      "levels": {
+        "low": "0 1px 2px rgba(3, 8, 18, 0.35)",
+        "medium": "0 4px 14px rgba(3, 8, 18, 0.42)",
+        "high": "0 14px 34px rgba(3, 8, 18, 0.5)"
+      },
+      "depth_cues": "color intensity — 首要靠背景到卡片的明度差表达层级，阴影只做轻度辅助；不使用边框或发光"
+    },
+
+    "iconography": {
+      "style": "线性图标，圆角端点，均匀描边；导航激活态切换为填充并变蓝",
+      "stroke_weight": "2px",
+      "size_scale": ["16px", "20px", "22px", "24px", "28px"],
+      "preferred_set": "Phosphor Icons（沿用现有依赖），Regular / Fill 双档"
+    },
+
+    "motion": {
+      "easing": "cubic-bezier(0.2, 0, 0, 1)",
+      "duration_scale": {
+        "micro": "150ms",
+        "normal": "250ms",
+        "macro": "400ms"
+      },
+      "entrance_pattern": "fade-up（14px 位移 + 淡入），列表按行 60ms 错峰，一次性触发后保持终态",
+      "exit_pattern": "150ms 纯淡出，不位移不压缩",
+      "philosophy": "smooth glide — 轮播平滑滑动、卡片按压轻微下沉，无回弹无闪烁，无字符级动画"
+    },
+
+    "components": {
+      "button_style": "实心蓝底白字（#2977cb / 14px 圆角，无描边，按下轻微下沉）；次级按钮为深色底加 1px 淡描边；文字按钮不带底色",
+      "input_style": "深色圆角输入框（14px 圆角，1px rgba(255,255,255,.10) 描边），focus 时描边转蓝并加 4px 蓝色柔光，占位文字用 #89a5bc",
+      "card_style": "14px 圆角卡片，底色 #0c2340，无边框；列表卡结构为「左侧 88px 缩略图（8px 圆角）+ 右侧标题 / 摘要 / 元信息 + 最右 chevron」，摘要与标题各截断两行",
+      "navigation_pattern": "底部固定 tab 栏，图标在上文字在下；激活态图标切换为填充实心并染蓝，非激活态为 #585a6d 线性图标",
+      "modal_style": "居中 20px 圆角面板，深色遮罩 rgba(3, 6, 12, 0.72) 配 backdrop-blur 14px",
+      "list_style": "圆角卡片流，卡间 12px，无分隔线无奇偶底色；卡片整体可点，右侧 chevron 指示可进入",
+      "component_notes": "分类 chip 为全圆药丸，非激活态深底加淡文字，激活态整颗实底 #2977cb 配白字；hero 轮播全出血，底部叠深到透明的渐变遮罩保证文字可读，指示器为小圆点而非计数文本；元信息行使用「图标 + 文字」形式并以 12px 字号弱化。"
+    }
+  },
+
+  "design_style": {
+    "aesthetic": {
+      "mood": ["clean", "technological", "calm", "premium", "focused"],
+      "visual_metaphor": "夜间驾驶舱的抬头显示 —— 深蓝玻璃上浮起一排排会发光的信息卡片",
+      "era_influence": "当代 iOS 内容类 App 与蓝调科技媒体的结合",
+      "genre": "consumer tech content / editorial feed",
+      "personality_traits": ["composed", "approachable", "modern", "reliable"],
+      "adjectives": ["干净", "克制", "蓝调", "以图为主"]
+    },
+    "visual_language": {
+      "complexity": "moderate",
+      "ornamentation": "subtle accents — 蓝色只出现在激活态、强调标记与小图标上，不做大面积装饰",
+      "whitespace_usage": "comfortable — 卡片内距充足，模块间留白始终大于模块内间距",
+      "visual_weight_distribution": "image-led — 配图承担主要视觉重量，文字退为次级，色彩退为点缀",
+      "focal_strategy": "single hero element — 首屏由一张全出血 hero 图主导，其下为重复节奏的列表",
+      "contrast_level": "high",
+      "texture_usage": "imagery — 质感全部来自配图本身的画面，不使用噪点、网格或渐变场纹理"
+    },
+    "composition": {
+      "hierarchy_method": "image + scale contrast — 用图片面积与标题字号拉开层级，不用边框或色块",
+      "balance_type": "asymmetric — 列表行为左图右文的非对称两栏，顶部品牌区横向分布",
+      "flow_direction": "自上而下单列流，内容整体左对齐",
+      "grouping_strategy": "spacing + card surface — 用间距与卡片底色分组，不画分隔线",
+      "negative_space_role": "separation — 深底大留白承担模块之间的分隔，同时给视觉喘息"
+    },
+    "imagery": {
+      "photo_treatment": "高对比冷调摄影与 3D 渲染，蓝紫主导、暗部压低，可直接压深色遮罩承载文字",
+      "illustration_style": "概念科技类图像（大脑神经网、代码屏幕、全息晶体、人物剪影），写实与科幻混合",
+      "graphic_elements": "圆形图标底、圆点指示器、左下到右上的渐变遮罩、小型蓝色强调方块",
+      "pattern_usage": "none — 不使用网格、噪点或重复图案底纹",
+      "image_shape": "rounded-rectangular（8px 缩略图 / 14-20px hero）"
+    },
+    "interaction_feel": {
+      "feedback_style": "subtle — 按压时卡片轻微下沉并提高底色明度，无位移跳动",
+      "hover_behavior": "整卡提亮一档并抬升 2px，缩略图轻微放大（仅精确指针设备）",
+      "transition_personality": "smooth glide",
+      "loading_style": "按卡片结构成型的骨架屏（缩略图方块 + 三行文字条），不闪字符不打字机",
+      "microinteraction_density": "low — 只在按压与激活态给反馈，其余保持安静"
+    },
+    "brand_voice_in_ui": {
+      "tone": "沉稳、陈述式，数据与标题先行",
+      "formality": "neutral — 中性书面语，不用口语语气词也不用命令式指令",
+      "cta_style": "friendly invitation — 「点击进入专题」「查看全部」「去登录」，带轻微引导感",
+      "empty_state_approach": "polite guidance — 图标 + 一句说明 + 单个行动按钮，不出现终端符号",
+      "error_tone": "direct, no exclamation marks — 「请求失败：连接超时」，附一次重试入口"
+    }
+  },
+
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "subtle-accent",
+      "performance_tier": "lightweight",
+      "fallback_strategy": "reduce to CSS — 关闭轮播自动播放与图片缩放动效，保留静态渐变遮罩；prefers-reduced-motion 下全部静止",
+      "primary_technology": "CSS only"
+    },
+    "background_effects": {
+      "type": "none",
+      "description": "纯色深底 #060b12，画面质感完全由配图提供；不铺网格、噪点或呼吸辉光",
+      "technology": "none",
+      "params": {
+        "color_palette": ["#060b12"],
+        "speed": "none",
+        "density": "none",
+        "opacity": "none",
+        "blend_mode": "none"
+      }
+    },
+    "particle_systems": {
+      "enabled": false,
+      "type": "none",
+      "description": "无粒子系统",
+      "technology": "none",
+      "params": {
+        "count": 0,
+        "shape": "none",
+        "size_range": "none",
+        "movement_pattern": "none",
+        "color_behavior": "none",
+        "interaction": "none",
+        "spawn_area": "none"
+      }
+    },
+    "3d_elements": {
+      "enabled": false,
+      "type": "none",
+      "description": "无 3D 元素；参考图中的立体感来自配图本身而非实时渲染",
+      "technology": "none",
+      "params": {
+        "renderer": "none",
+        "lighting": "none",
+        "camera": "none",
+        "materials": "none",
+        "geometry": "none",
+        "post_processing": "none",
+        "interaction_model": "none"
+      }
+    },
+    "shader_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "无着色器",
+      "technology": "none",
+      "params": {
+        "uniforms": "none",
+        "vertex_manipulation": "none",
+        "fragment_output": "none",
+        "noise_type": "none",
+        "distortion": "none"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": false,
+        "layers": "0",
+        "depth_range": "none",
+        "speed_curve": "none"
+      },
+      "scroll_triggered_animations": {
+        "enabled": true,
+        "trigger_points": "top 85% — 卡片进入视口时触发一次",
+        "animation_type": "fade-up",
+        "scrub_behavior": "非 scrub，一次性触发后保持终态"
+      },
+      "scroll_morphing": {
+        "enabled": false,
+        "description": "无滚动形变；固定条为状态切换而非形态变化"
+      }
+    },
+    "text_effects": {
+      "type": "none",
+      "description": "无文字特效，标题与正文为静态排版",
+      "technology": "none",
+      "params": {
+        "split_strategy": "none",
+        "animation_per_unit": "none",
+        "stagger": "none",
+        "effect_style": "none"
+      }
+    },
+    "cursor_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "移动优先界面，参考图无自定义光标；桌面端仅保留常规 hover 反馈",
+      "params": {
+        "shape": "none",
+        "size": "none",
+        "blend_mode": "none",
+        "trail": "none",
+        "interaction_zone": "none"
+      }
+    },
+    "image_effects": {
+      "type": "none",
+      "description": "静态图；缩放与提亮归入 interaction_feel.hover_behavior，不构成独立图效",
+      "technology": "none",
+      "params": {
+        "filter_pipeline": "none",
+        "hover_transform": "none",
+        "reveal_animation": "none",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": true,
+      "style": "glass",
+      "params": {
+        "blur_radius": "14px",
+        "transparency": "底色不透明度 0.88，backdrop-filter: blur(14px) saturate(140%)",
+        "border_treatment": "顶部 1px rgba(255,255,255,.06) 内高光，底部 1px rgba(255,255,255,.05) 分隔",
+        "shadow_type": "不投影，靠 blur 与底色差分层",
+        "light_source_angle": "自上而下，固定条受顶光"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": false,
+      "type": "none",
+      "description": "无 Canvas 绘制",
+      "technology": "none",
+      "params": {
+        "draw_method": "none",
+        "animation_loop": "none",
+        "color_scheme": "none",
+        "responsiveness": "none",
+        "interaction": "none"
+      }
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "none",
+      "description": "无 SVG 描边动画或路径绘制",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": "none",
+        "stroke_animation": "none",
+        "filter_effects": "none"
+      }
+    },
+    "composite_notes": "本 DNA 由单张参考截图测得，落地时需注意四点。其一，参考图为手机 mockup，外圈模糊房间背景已裁除；未裁剪时会混入 #342828、#665e68 两个暖灰，破坏单一冷灰家族。其二，measured_palette 中 #b6633b（0.37%）来自文章缩略图照片的暖色灯光，属图像内容而非界面颜色，落地时不取用。其三，玻璃拟态是基于固定条形态的推断而非可测量项——静态图无法分辨毛玻璃，最终以轻度模糊为准，若观感突兀可直接降为纯色。其四，本轮改造范围为视觉层：不实施 image 字段与图片接入（缩略图位用分类色块占位）、不实施浏览量计数、不实施四标签底部导航与新增分类页收藏页；涉及这些的 DNA 字段（components.navigation_pattern 的具体标签数、imagery 的图片来源）只作为后续阶段的规格保留。背景特效、粒子、3D、着色器、光标、Canvas、SVG 动画均为 enabled:false，代码中不应出现任何对应实现。"
+  }
+}

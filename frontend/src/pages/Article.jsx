@@ -129,14 +129,6 @@ export default function Article({ user }) {
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="返回">
           <CaretLeft size={20} />
         </button>
-        <svg
-          className="signal-line"
-          viewBox="0 0 240 12"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path d="M0 6 H240" />
-        </svg>
       </div>
 
       {!article && !error && (

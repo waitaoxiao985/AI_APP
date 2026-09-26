@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MagnifyingGlass, Clock, BookmarkSimple, CaretLeft, CaretRight, Books } from '@phosphor-icons/react'
-import { getDaily, getTopics, getBookmarksRecent, getNews } from '../api.js'
+import { getDaily, getTopics, getBookmarksRecent, getNews, getCategories, getArticles } from '../api.js'
+import { relTime } from '../time.js'
 
 export default function Discover({ user }) {
   const [daily, setDaily] = useState([])
@@ -14,8 +15,37 @@ export default function Discover({ user }) {
   const [recent, setRecent] = useState([])
   const [favTotal, setFavTotal] = useState(0)
   const [news, setNews] = useState([])
+  const [cats, setCats] = useState(['全部'])
+  const [cat, setCat] = useState('全部')
+  const [list, setList] = useState([])
+  const [listLoading, setListLoading] = useState(true)
   const navigate = useNavigate()
   const touchX = useRef(0)
+
+  useEffect(() => {
+    getCategories()
+      .then((d) => setCats(['全部', ...d.categories]))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+    setListLoading(true)
+    getArticles(cat, 100)
+      .then((d) => {
+        if (!alive) return
+        setList(d.articles)
+        setListLoading(false)
+      })
+      .catch(() => {
+        if (!alive) return
+        setList([])
+        setListLoading(false)
+      })
+    return () => {
+      alive = false
+    }
+  }, [cat])
 
   useEffect(() => {
     if (!user) {
@@ -90,9 +120,17 @@ export default function Discover({ user }) {
     <div className="page">
       <header className="discover-top">
         <div className="brand-glyph" aria-hidden="true">知</div>
-        <button type="button" className="search-cta" onClick={() => navigate('/search')}>
-          <MagnifyingGlass size={16} aria-hidden="true" />
-          <span>搜索文章、专题、术语</span>
+        <div className="brand-text">
+          <h1 className="brand-title">AI 知识</h1>
+          <p className="brand-sub">探索人工智能的无限可能</p>
+        </div>
+        <button
+          type="button"
+          className="search-round"
+          aria-label="搜索文章、专题、术语"
+          onClick={() => navigate('/search')}
+        >
+          <MagnifyingGlass size={18} aria-hidden="true" />
         </button>
       </header>
 
@@ -154,11 +192,15 @@ export default function Discover({ user }) {
                     <span>{a.read_time}</span>
                   </div>
                 </div>
-                <span className="carousel-count">
-                  {i + 1}/{hero.length}
-                </span>
               </Link>
             ))}
+            {hero.length > 1 && (
+              <div className="carousel-dots" aria-hidden="true">
+                {hero.map((_, i) => (
+                  <span key={i} className={i === slide ? 'dot dot-on' : 'dot'} />
+                ))}
+              </div>
+            )}
             {hero.length > 1 && (
               <button
                 type="button"
@@ -170,6 +212,82 @@ export default function Discover({ user }) {
               </button>
             )}
           </section>
+        </>
+      )}
+
+      {!loading && !error && (
+        <>
+          <p className="sub-eyebrow module-head">分类</p>
+          <div className="chips" role="group" aria-label="文章分类">
+            {cats.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={c === cat ? 'chip chip-on' : 'chip'}
+                aria-pressed={c === cat}
+                onClick={() => setCat(c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
+          {listLoading && (
+            <div aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div className="sk-row" key={i}>
+                  <div className="sk sk-cover" />
+                  <div className="sk-lines">
+                    <div className="sk sk-line w-40" />
+                    <div className="sk sk-line w-90" />
+                    <div className="sk sk-line w-55" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!listLoading && list.length === 0 && (
+            <div className="empty enter">
+              <div className="empty-art" aria-hidden="true">
+                <Books size={23} />
+              </div>
+              <p className="empty-title">无匹配记录</p>
+              <p className="empty-copy">该分类下暂时没有文章，换个分类看看。</p>
+            </div>
+          )}
+
+          {!listLoading && list.length > 0 && (
+            <>
+              <section className="row-list" aria-label="文章列表">
+                {list.slice(0, 3).map((a, i) => (
+                  <Link key={a.id} to={'/article/' + a.id} className="row enter" style={{ '--i': i }}>
+                    <div className="cover" data-cat={a.category} />
+                    <div className="row-body">
+                      <span className="tag">{a.category}</span>
+                      <h3>{a.title}</h3>
+                      <p>{a.summary}</p>
+                      <div className="meta">
+                        <Clock size={12} />
+                        <span>{a.read_time}</span>
+                        {a.created_at && (
+                          <>
+                            <span className="meta-dot" aria-hidden="true" />
+                            <span>{relTime(a.created_at)}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </section>
+
+              <Link to="/articles" className="more-row enter" style={{ '--i': 3 }}>
+                查看全部 {list.length} 篇文章
+                <CaretRight size={14} />
+              </Link>
+            </>
+          )}
         </>
       )}
 
@@ -277,7 +395,7 @@ export default function Discover({ user }) {
           <div className="empty-art" aria-hidden="true">
             <Books size={23} />
           </div>
-          <p className="empty-title typewriter">无匹配记录</p>
+          <p className="empty-title">无匹配记录</p>
           <p className="empty-copy">暂无内容，稍后再来看看。</p>
         </div>
       )}

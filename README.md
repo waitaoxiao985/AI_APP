@@ -6,13 +6,14 @@
 
 ## 功能特性
 
-核心五件套：
+1. **首页信息流** — 顶部品牌区（图标 + 标题 + 副标题 + 圆形搜索入口）→ 今日推荐轮播（自动播放 / 触摸滑动 / 圆点指示 / 左右箭头）→ 分类筛选与文章列表（首页只放 3 篇，底部「查看全部 N 篇文章」进全量页）→ 专题轮播 → AI 快讯 → 收藏预览
+2. **全部文章** — `/articles` 全量列表 + 分类筛选，顶栏返回
+3. **搜索** — 按标题 / 摘要 / 正文检索，热词来自 `search_logs` 的搜索日志聚合
+4. **专题** — `/topic/:id` 专题聚合页；`/today` 取当日推荐后跳转
+5. **AI 快讯** — 每日 08:30 定时抓取 + 启动补跑，8 个 RSS 源、按 link 去重、上限 300 条。RSS 带全文的直接阅读，只给链接的降级为「标题 + 摘要 + 阅读原文」
+6. **长文阅读 / 收藏 / 登录注册** — 参考文献与版权声明随文排版、JWT 鉴权收藏、bcrypt 密码加密
 
-1. **浏览与分类筛选** — 首页文章列表，按分类（大模型基础 / 架构原理 / 提示工程 / AI 安全 / 应用实践）筛选
-2. **搜索** — 按关键词搜索文章标题、摘要、正文
-3. **详情阅读** — 文章全文阅读，显示分类与阅读时长
-4. **收藏** — 登录后可收藏 / 取消收藏文章，在「我的」查看收藏列表
-5. **登录注册** — 用户名 + 密码注册登录（bcrypt 加密 + JWT 令牌）
+底部导航 2 个 tab（首页 / 我的），其余为带返回栏的二级页。
 
 ## 技术栈
 
@@ -20,16 +21,17 @@
 |---|---|
 | 前端 | React 18 + React Router 6 + Vite 5（纯 JavaScript/JSX） |
 | 界面 | Design DNA 驱动的 CSS 设计系统 + Phosphor Icons（21px 字号档，Regular/Fill 双状态） |
-| 字体 | JetBrains Mono（标题 / 标签 / 数据）+ IBM Plex Sans（正文），Google Fonts 按 unicode-range 子集加载 |
+| 字体 | 系统无衬线栈（SF Pro / HarmonyOS Sans / PingFang / Segoe UI），**零网络字体依赖**；数字启用 `tabular-nums` |
 | 后端 | Node.js + Express 4 + pg（PostgreSQL 驱动） |
 | 数据库 | openGauss（兼容 PostgreSQL 协议） |
 | 认证 | bcryptjs 密码加密 + jsonwebtoken（JWT，7 天有效） |
+| 快讯采集 | `rss-parser` 抓 RSS/Atom + `node-cron` 定时同步（08:30），正文长度过滤与降级源判定 |
 
 ## 界面设计
 
 界面风格由一份 **Design DNA** JSON 驱动：先把审美方向结构化成三个维度的字段，再把字段逐条翻译成代码，避免「凭感觉调样式」。
 
-文件：`frontend/design-dna.cyber-terminal.json`
+文件：`frontend/design-dna.ai-blue.json`（由参考截图测色生成，替代早期的 `design-dna.cyber-terminal.json`）
 
 ### 三个维度
 
@@ -37,99 +39,108 @@
 |---|---|---|
 | **design_system** | 可度量的 token：色板、字阶、间距、圆角、阴影、动效曲线、图标、组件模式 | `frontend/src/index.css` 的 `:root` 变量 |
 | **design_style** | 可感知的取向：mood、构图策略、留白哲学、交互手感、品牌语气 | 组件结构与文案写法 |
-| **visual_effects** | 需要 CSS 以外手段实现的渲染：噪点背景、扫描线、光标聚光、打字机、SVG 信号线 | CSS 动画 + `App.jsx` 中两个 hook |
+| **visual_effects** | 需要 CSS 以外手段实现的渲染：滚动触发入场、轮播、毛玻璃 | CSS 动画 + `App.jsx` 的 `useReveal()` |
 
-### 风格方向：暗色终端 / 赛博监控台
+### 风格方向：深蓝内容流（AI Blue Feed）
 
-隐喻是「夜航舰桥的监控台」——黑玻璃面板上跑着青色信号灯。关键词：`tense` `precise` `nocturnal` `clinical` `focused`。
+由一张参考截图的**确定性测色**驱动（k-means k=8、分层采样 160,000 px），不是凭肉眼估色——感知色会向熟悉色板漂移，ΔE 常超 10。隐喻是「夜间驾驶舱的抬头显示」，关键词：`clean` `technological` `calm` `premium` `focused`。
 
-**色板**（单一冷灰家族 + 单一信号青，无第二强调色）
+**色板**（单色蓝体系 + 冷灰中性色，无第二色相）
 
-| 用途 | 色值 |
-|---|---|
-| 页面底色 | `#070a0e` |
-| 面板 / 卡片 | `#0f151c` |
-| 抬升层 | `#161e27` |
-| 信号青（accent） | `#00e5ff` |
-| 正文 / 次要 / 元信息 | `#f2f6f8` / `#c9d4db` / `#8b98a3` |
-| 语义色 | success `#2fe08a` · warning `#f5b83d` · error `#ff5f6c` · info `#5ab2ff` |
+| 用途 | 色值 | 来源 |
+|---|---|---|
+| 页面底色 | `#060b12` | 测得，占屏 70.8% |
+| 卡片面 | `#0c2340` | 测得，12.0% |
+| 抬升面 | `#124580` | 测得，6.3% |
+| 信号蓝 accent | `#2977cb` | 测得 role=accent，3.4% |
+| 正文 / 次要 / 元信息 | `#d9e4eb` / `#b6c4d1` / `#89a5bc` | 首尾两个为测得值 |
+| 语义色 | success `#3ecf8e` · warning `#f0a63c` · error `#f2555a` · info `#4f9bf0` | 参考图未出现，按蓝色体系外推 |
+
+> 测量时先把 mockup 外圈的模糊背景裁掉（否则会混入 `#342828`、`#665e68` 两个暖灰，破坏单一冷灰家族）；`measured_palette` 里那个 0.37% 的暖橙 `#b6633b` 来自缩略图照片，属图像内容而非界面颜色，未取用。
 
 **字阶与形制**
 
-- 圆角只有 `2 / 4 / 6px` 三档——刻意近乎直角
-- 阴影是「硬偏移 + 青色辉光」，不用柔和大扩散阴影
-- 动效 `cubic-bezier(0.2, 0, 0, 1)`，`120 / 200 / 320ms` 三档，无回弹
-- 等宽字体承担标题、标签与全部数值；数字全局 `tabular-nums` 对齐
-- 标题注入 `//`、章节注入 `##`、表单标签注入 `>`、空态注入 `> …_`，全站走终端字面量语气
+- 系统无衬线，标题正文同族，**不加载任何网络字体**
+- 圆角 `8 / 14 / 20 / pill` 四档
+- 卡片**不描边**，靠底色明度差 + 柔和冷蓝阴影分层；列表无分隔线、无奇偶斑马底
+- 动效 `cubic-bezier(0.2, 0, 0, 1)`，`150 / 250 / 400ms` 三档，无回弹
+- 列表卡结构：左侧 88×66（4:3）缩略图 + 右侧标题 / 摘要（各两行截断）/ 元信息 + chevron
 
 **视觉特效**
 
-已开启（全部 lightweight，不引入任何重型依赖）：
+已开启：
 
 | 特效 | 实现 |
 |---|---|
-| 背景网格 + 呼吸辉光 + 噪点 | `body` / `.app` 分层 `background-image`，噪点 opacity 0.04 |
-| 入场扫描线 | `.sweep` 用 `background-position` 动画（不触发重排） |
-| 滚动触发入场 | `App.jsx` 的 `useReveal()`：IntersectionObserver + MutationObserver + 1500ms 兜底 |
-| 光标聚光 | `App.jsx` 的 `<Spotlight/>`：rAF 跟随，仅精确指针设备且悬停面板内时显示 |
-| 顶栏信号线 | `<svg>` + `stroke-dashoffset` 循环 |
-| 打字机 | `.typewriter` 用 `clip-path` + `steps()`，方块光标为 `.typewriter::after` 色块 |
+| 滚动触发入场 | `App.jsx` 的 `useReveal()`：IntersectionObserver + MutationObserver 捕获异步列表 + 1500ms 兜底 |
+| 轮播自动播放 | `setInterval`，受 `prefers-reduced-motion` 守卫 |
 | 毛玻璃 | 顶栏 / 底栏 `backdrop-filter: blur(18px) saturate(160%)` |
 
-已关闭（DNA 中 `enabled: false`，**代码里没有任何实现**）：粒子系统、3D、着色器、Canvas 绘图。
+已关闭（DNA 标 `enabled: false`，**代码里没有任何实现**）：背景网格 / 噪点 / 呼吸辉光、粒子、3D、着色器、Canvas、光标聚光、打字机、SVG 动画、视差、图像特效。
 
 **降级策略**
 
-- `prefers-reduced-motion: reduce` → 关闭全部动画与扫描线、隐藏聚光、打字机直接完整显示
-- 触屏 / coarse pointer → 聚光层 `display: none`
-- 滚动入场观察器失效 → 1500ms 后强制 `opacity: 1`，内容绝不卡在不可见
+- `prefers-reduced-motion: reduce` → 关闭全部动画，入场元素直接可见
+- 触发滚动观察的条件不满足 → 1500ms 后强制 `opacity: 1`，内容绝不卡在不可见
 
 ### 质量检查
 
 | 项 | 结果 |
 |---|---|
-| 色值溯源 | CSS 中 21 个 hex，12 个与 DNA 精确匹配，9 个为同族派生，**0 个游离色** |
-| WCAG 对比度 | 14 组全部达标；正文 16.88:1、元信息 6.22:1、强调色 12.89:1、装饰级 3.42:1 |
-| 已关闭特效 | `canvas` / `three` / `gsap` / `lottie` / `pixi` / `WebGL` / `setInterval` 扫描命中 0 |
-| 动画循环 | 仅 Spotlight 使用 `requestAnimationFrame` |
+| 色值溯源 | CSS 中 19 个 hex，13 个与 DNA 精确匹配、6 个同族派生（色相 210–219°），**0 个游离色**；28 种 rgba **0 越界** |
+| WCAG 对比度 | 14 组全部达标：正文 12.22:1、次要 8.88:1、元信息 6.14:1、accent 文字 6.18:1、按钮白字 4.57:1 |
+| 已关闭特效 | `canvas` / `three` / `gsap` / `lottie` / `pixi` / `WebGL` / 噪点 / 网格 / 聚光 / 打字机 / 信号线 扫描命中 **0** |
+| DNA token | `--bg` `--surface` `--accent` `--text` `--r-*` `--ease` `--dur-*` 等 **17 个 token 与 DNA 逐字一致** |
 
 ### 修改设计
 
-调风格时**只改两处**：`design-dna.cyber-terminal.json` 记录意图，`index.css` 的 `:root` 执行数值。组件样式里的颜色一律引用变量，不写裸色值——这是上表「0 游离色」能成立的前提。
+调风格时**只改两处**：`design-dna.ai-blue.json` 记录意图，`index.css` 的 `:root` 执行数值。组件样式里的颜色一律引用变量，不写裸色值——这是上表「0 游离色」能成立的前提。
 
 ## 项目结构
 
 ```
 AI_APP/
-├── backend/                  后端服务
+├── backend/                      后端服务
 │   ├── package.json
-│   ├── .env.example          环境变量模板
-│   ├── init.sql              建表 + 10 篇入门种子文章
-│   ├── seed-deep-articles.sql 深度长文（文末含参考文献与版权声明）
+│   ├── .env.example              环境变量模板
+│   ├── init.sql                  建表 + 10 篇入门种子文章
+│   ├── seed-deep-articles.sql    深度长文（文末含参考文献与版权声明）
 │   └── src/
-│       ├── server.js         Express 入口（端口 3003）
-│       ├── db.js             pg 连接池
-│       ├── init-db.js        一键初始化数据库脚本
-│       ├── seed-deep.js      深度长文种子脚本（幂等，可单独执行）
+│       ├── server.js             Express 入口（3000 起 3003），注册路由 + cron
+│       ├── db.js                 pg 连接池
+│       ├── init-db.js            建表 + 种子（先 init.sql 再 seed-deep）
+│       ├── reset-db.js           清库重建
+│       ├── seed-deep.js          深度长文种子（幂等，可单独执行）
+│       ├── news-sync.js          快讯采集：8 源 RSS + 长度过滤 + 降级源 + 存量清理
+│       ├── fetch-news.mjs        手动触发一次同步
 │       └── routes/
-│           ├── auth.js       注册 / 登录 / 我的信息
-│           ├── articles.js   文章列表 / 分类 / 搜索 / 详情
-│           └── bookmarks.js  收藏列表 / 加收藏 / 取消收藏
-├── frontend/                 前端应用
+│           ├── auth.js           注册 / 登录 / 我的信息
+│           ├── articles.js       列表 / 分类 / 搜索 / 今日推荐 / 热词 / 详情
+│           ├── bookmarks.js      收藏列表 / 最近 / 加收 / 取消
+│           ├── topics.js         专题列表 / 专题详情
+│           └── news.js           快讯列表 / 快讯详情
+├── frontend/                     前端应用
 │   ├── package.json
-│   ├── vite.config.js        开发端口 5173，/api 代理到 3003
-│   ├── index.html
+│   ├── vite.config.js            开发端口 5173，/api 代理到 3003
+│   ├── index.html                meta + theme-color（无网络字体）
+│   ├── design-dna.ai-blue.json   Design DNA 规范（三个维度）
 │   └── src/
-│       ├── main.jsx          React 挂载入口
-│       ├── App.jsx           路由 + 底部导航
-│       ├── api.js            fetch 封装 + token 管理
-│       ├── index.css         全局样式
+│       ├── main.jsx              React 挂载入口 + PWA
+│       ├── App.jsx               路由 / 底部导航 / useReveal 滚动入场
+│       ├── api.js                fetch 封装 + token 管理
+│       ├── time.js               相对时间（X 分钟前 / X 小时前）
+│       ├── index.css             设计系统（token + 组件 + 特效）
 │       └── pages/
-│           ├── Login.jsx     登录 / 注册
-│           ├── Discover.jsx  发现（列表 + 分类）
-│           ├── Search.jsx    搜索
-│           ├── Article.jsx   文章详情 + 收藏 + 长文排版
-│           └── Profile.jsx   我的（收藏 + 退出）
+│           ├── Login.jsx         登录 / 注册（表单校验）
+│           ├── Discover.jsx      首页：轮播 + 分类 + 列表 + 专题 + 快讯 + 收藏
+│           ├── Articles.jsx      全部文章（分类筛选）
+│           ├── Search.jsx        搜索
+│           ├── Topic.jsx         专题详情
+│           ├── Article.jsx       长文详情 + 收藏 + 参考文献排版
+│           ├── News.jsx          快讯列表
+│           ├── NewsDetail.jsx    快讯详情（带正文 / 仅链接两种形态）
+│           ├── Profile.jsx       我的（收藏 + 退出）
+│           └── NotFound.jsx      404
 ├── README.md
 └── .gitignore
 ```
@@ -217,16 +228,23 @@ npm run dev
 | POST | /api/auth/register | 注册（username/password/nickname） | 否 |
 | POST | /api/auth/login | 登录 | 否 |
 | GET | /api/auth/me | 获取当前用户 | 是 |
-| GET | /api/articles | 文章列表（支持 category 分页） | 否 |
-| GET | /api/articles/categories | 全部分类 | 否 |
-| GET | /api/articles/search?q= | 搜索文章 | 否 |
+| GET | /api/articles | 文章列表（category / limit / offset，均校验） | 否 |
+| GET | /api/articles/categories | 全部分类 + 各分类计数 | 否 |
+| GET | /api/articles/daily | 今日推荐（按日期种子哈希 + 分类去重取 3 篇） | 否 |
+| GET | /api/articles/search?q= | 搜索文章（LIKE 通配符已转义，同时写入搜索日志） | 否 |
+| GET | /api/articles/search/hot | 热门搜索词（search_logs 按 hits 取前 8） | 否 |
 | GET | /api/articles/:id | 文章详情 | 否 |
+| GET | /api/topics | 专题列表（含各专题文章数） | 否 |
+| GET | /api/topics/:id | 专题详情 + 该专题文章 | 否 |
+| GET | /api/news | 快讯列表（limit ≤ 50） | 否 |
+| GET | /api/news/:id | 快讯详情（正文可能为 null，表示仅链接） | 否 |
 | GET | /api/bookmarks | 我的收藏列表 | 是 |
+| GET | /api/bookmarks/recent?limit= | 最近收藏 + 总数 | 是 |
 | GET | /api/bookmarks/check/:articleId | 是否已收藏 | 是 |
 | POST | /api/bookmarks | 加收藏 | 是 |
 | DELETE | /api/bookmarks/:articleId | 取消收藏 | 是 |
 
-鉴权方式：请求头 `Authorization: Bearer <token>`。
+鉴权方式：请求头 `Authorization: Bearer <token>`。所有 `:id` 与分页参数均做格式与范围校验，非法值返回 400。
 
 ## 数据库表
 
@@ -235,8 +253,18 @@ npm run dev
 | users | id, username(唯一), password(bcrypt), nickname, created_at |
 | articles | id, title, summary, content, category, read_time, created_at |
 | bookmarks | id, user_id, article_id, created_at（user_id + article_id 唯一） |
+| topics | id, title(唯一), subtitle, created_at |
+| topic_articles | id, topic_id, article_id, created_at（topic_id + article_id 唯一） |
+| search_logs | term(唯一), hits, updated_at —— 搜索词计数，供热词接口聚合 |
+| news | id, title, link(唯一), source, published_at, excerpt, content, fetched_at —— `content` 为 null 表示源站未给正文 |
 
-种子数据：13 篇 AI 方向文章（10 篇入门短文 + 3 篇原创深度长文；大模型基础 / 架构原理 / 提示工程 / AI 安全 / 应用实践）。
+种子数据：
+
+- **13 篇文章**（10 篇入门短文 + 3 篇原创深度长文；大模型基础 / 架构原理 / 提示工程 / AI 安全 / 应用实践）
+- **3 个专题**，按分类自动挂载文章
+- 所有种子均为幂等写法（`WHERE NOT EXISTS`），可重复执行
+
+快讯入库规则：正文中短于 120 字不入库；InfoQ中文 / 量子位 / 少数派 / Google AI 四个源的 RSS 只给标题与链接，按「仅标题 + 摘要 + 原文链接」降级处理，不做 HTML 全文提取。
 
 ## 内容与版权说明
 

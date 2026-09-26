@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, MagnifyingGlass, MagnifyingGlassPlus } from '@phosphor-icons/react'
 import { searchArticles, getHotSearch } from '../api.js'
+import { relTime } from '../time.js'
 
 export default function Search() {
   const [keyword, setKeyword] = useState('')
@@ -124,6 +125,12 @@ export default function Search() {
                 <div className="meta">
                   <Clock size={12} />
                   <span>{a.read_time}</span>
+                  {a.created_at && (
+                    <>
+                      <span className="meta-dot" aria-hidden="true" />
+                      <span>{relTime(a.created_at)}</span>
+                    </>
+                  )}
                 </div>
               </div>
             </Link>
@@ -136,7 +143,7 @@ export default function Search() {
           <div className="empty-art" aria-hidden="true">
             <MagnifyingGlassPlus size={23} />
           </div>
-          <p className="empty-title typewriter">无匹配记录</p>
+          <p className="empty-title">无匹配记录</p>
           <p className="empty-copy">
             0 条结果。换个更短的关键词，或点上方热词直接搜。
           </p>

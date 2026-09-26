@@ -68,7 +68,7 @@ export default function Profile({ user, logout }) {
           <div className="empty-art" aria-hidden="true">
             <Books size={23} />
           </div>
-          <p className="empty-title typewriter">收藏列表为空</p>
+          <p className="empty-title">收藏列表为空</p>
           <p className="empty-copy">阅读时点击「收藏这篇」，文章会写入此列表。</p>
           <button className="btn-text" onClick={() => navigate('/')}>
             去发现文章

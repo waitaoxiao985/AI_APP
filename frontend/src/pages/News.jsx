@@ -66,7 +66,7 @@ export default function News() {
           <div className="empty-art" aria-hidden="true">
             <Newspaper size={23} />
           </div>
-          <p className="empty-title typewriter">暂无快讯</p>
+          <p className="empty-title">暂无快讯</p>
           <p className="empty-copy">定时采集完成后会自动出现在这里。</p>
         </div>
       )}
@@ -83,7 +83,7 @@ export default function News() {
                 </span>
               </div>
               <h3>{n.title}</h3>
-              <p>{n.excerpt}</p>
+              {n.excerpt && n.excerpt.trim().length >= 30 && <p>{n.excerpt}</p>}
             </Link>
           ))}
         </section>

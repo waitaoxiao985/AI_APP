@@ -44,9 +44,11 @@ export function getCategories() {
   return request('/articles/categories')
 }
 
-export function getArticles(category) {
-  const q = category && category !== '全部' ? '?category=' + encodeURIComponent(category) : ''
-  return request('/articles' + q)
+export function getArticles(category, limit) {
+  const params = []
+  if (category && category !== '全部') params.push('category=' + encodeURIComponent(category))
+  if (limit) params.push('limit=' + String(limit))
+  return request('/articles' + (params.length ? '?' + params.join('&') : ''))
 }
 
 export function getDaily() {

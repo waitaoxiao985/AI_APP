@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { Compass, User } from '@phosphor-icons/react'
 import { getToken, removeToken, me, getDaily } from './api.js'
@@ -8,6 +8,7 @@ import Search from './pages/Search.jsx'
 import Article from './pages/Article.jsx'
 import Profile from './pages/Profile.jsx'
 import Topic from './pages/Topic.jsx'
+import Articles from './pages/Articles.jsx'
 import News from './pages/News.jsx'
 import NewsDetail from './pages/NewsDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -77,48 +78,6 @@ function useReveal(pathname) {
   }, [pathname])
 }
 
-/* 光标特效 (visual_effects.cursor_effects.spotlight)
-   仅精确指针设备、且仅悬停在面板内部时显示。 */
-function Spotlight() {
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
-
-    let x = 0
-    let y = 0
-    let raf = 0
-
-    const paint = () => {
-      el.style.transform = `translate3d(${x}px, ${y}px, 0)`
-      raf = 0
-    }
-
-    const move = (e) => {
-      x = e.clientX
-      y = e.clientY
-      if (!raf) raf = requestAnimationFrame(paint)
-      const target = e.target instanceof Element ? e.target : null
-      const onPanel = !!(target && target.closest('.row, .center, .user-card, .login-card'))
-      el.classList.toggle('on', onPanel)
-    }
-
-    const hide = () => el.classList.remove('on')
-
-    window.addEventListener('pointermove', move, { passive: true })
-    window.addEventListener('pointerleave', hide)
-    return () => {
-      if (raf) cancelAnimationFrame(raf)
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerleave', hide)
-    }
-  }, [])
-
-  return <div className="spotlight" ref={ref} aria-hidden="true" />
-}
-
 function TodayRedirect() {
   const navigate = useNavigate()
   useEffect(() => {
@@ -153,6 +112,7 @@ export default function App() {
   const hideTab =
     location.pathname.startsWith('/login') ||
     location.pathname.startsWith('/article/') ||
+    location.pathname.startsWith('/articles') ||
     location.pathname.startsWith('/topic/') ||
     location.pathname.startsWith('/news/')
 
@@ -160,7 +120,6 @@ export default function App() {
     <div className="app">
       <a className="skip-link" href="#main">跳到主要内容</a>
       <ScrollToTop />
-      <Spotlight />
 
       <main id="main" tabIndex={-1}>
         <Routes>
@@ -170,6 +129,7 @@ export default function App() {
           <Route path="/login" element={<Login setUser={setUser} />} />
           <Route path="/article/:id" element={<Article user={user} />} />
           <Route path="/topic/:id" element={<Topic />} />
+          <Route path="/articles" element={<Articles />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/today" element={<TodayRedirect />} />
