@@ -49,7 +49,7 @@ export function dailyPicks(rows, seed, n = 3) {
 router.get('/daily', async (req, res) => {
   try {
     const result = await query(
-      'SELECT id, title, summary, category, read_time, created_at FROM articles ORDER BY id'
+      'SELECT id, title, summary, category, read_time, cover, created_at FROM articles ORDER BY id'
     );
     const seed = Math.floor(Date.now() / 86400000);
     res.json({
@@ -91,7 +91,7 @@ router.get('/search', async (req, res) => {
   if (!q) return res.json({ articles: [] });
   try {
     const result = await query(
-      `SELECT id, title, summary, category, read_time, created_at FROM articles
+      `SELECT id, title, summary, category, read_time, cover, created_at FROM articles
        WHERE title ILIKE $1 OR summary ILIKE $1 OR content ILIKE $1
        ORDER BY created_at DESC LIMIT 50`,
       ['%' + escapeLike(q) + '%']
@@ -121,7 +121,7 @@ router.get('/', async (req, res) => {
     }
     params.push(limit, offsetRaw);
     const result = await query(
-      `SELECT id, title, summary, category, read_time, created_at FROM articles${where}
+      `SELECT id, title, summary, category, read_time, cover, created_at FROM articles${where}
        ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );

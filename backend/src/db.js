@@ -8,7 +8,7 @@ const { Pool } = pkg;
 const cloudConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL.replace(/&?channel_binding=require/, ''),
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: true }
     }
   : {
       host: process.env.DB_HOST,

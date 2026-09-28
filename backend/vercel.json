@@ -8,7 +8,7 @@
   "crons": [
     {
       "path": "/api/news/sync",
-      "schedule": "25 0 * * *"
+      "schedule": "30 0 * * *"
     }
   ],
   "functions": {

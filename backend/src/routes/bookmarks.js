@@ -4,6 +4,11 @@ import { query } from '../db.js';
 
 const router = express.Router();
 
+// H4: 与其他路由一致的数字 id 校验，非法返 400
+function validId(v) {
+  return typeof v === 'string' && /^\d+$/.test(v);
+}
+
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -19,7 +24,7 @@ function auth(req, res, next) {
 router.get('/', auth, async (req, res) => {
   try {
     const result = await query(
-      `SELECT b.id, b.article_id, a.title, a.summary, a.category, a.read_time
+      `SELECT b.id, b.article_id, a.title, a.summary, a.category, a.read_time, a.cover
        FROM bookmarks b JOIN articles a ON a.id = b.article_id
        WHERE b.user_id = $1 ORDER BY b.created_at DESC`,
       [req.user.id]
@@ -38,7 +43,7 @@ router.get('/recent', auth, async (req, res) => {
   try {
     const total = await query('SELECT count(*)::int AS n FROM bookmarks WHERE user_id = $1', [req.user.id]);
     const result = await query(
-      `SELECT b.id, b.article_id, a.title, a.summary, a.category, a.read_time
+      `SELECT b.id, b.article_id, a.title, a.summary, a.category, a.read_time, a.cover
        FROM bookmarks b JOIN articles a ON a.id = b.article_id
        WHERE b.user_id = $1 ORDER BY b.created_at DESC LIMIT $2`,
       [req.user.id, limit]
@@ -50,6 +55,7 @@ router.get('/recent', auth, async (req, res) => {
   }
 });
 router.get('/check/:articleId', auth, async (req, res) => {
+  if (!validId(req.params.articleId)) return res.status(400).json({ error: 'articleId 参数无效' });
   try {
     const result = await query(
       'SELECT id FROM bookmarks WHERE user_id = $1 AND article_id = $2',
@@ -64,7 +70,7 @@ router.get('/check/:articleId', auth, async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   const { article_id } = req.body;
-  if (!article_id) return res.status(400).json({ error: '缺少 article_id' });
+  if (!validId(String(article_id ?? ''))) return res.status(400).json({ error: '缺少有效的 article_id' });
   try {
     await query(
       'INSERT INTO bookmarks (user_id, article_id) VALUES ($1, $2)',
@@ -79,6 +85,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 router.delete('/:articleId', auth, async (req, res) => {
+  if (!validId(req.params.articleId)) return res.status(400).json({ error: 'articleId 参数无效' });
   try {
     await query(
       'DELETE FROM bookmarks WHERE user_id = $1 AND article_id = $2',

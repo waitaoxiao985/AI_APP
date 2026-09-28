@@ -25,7 +25,7 @@ router.get('/:id', async (req, res) => {
     const t = await query('SELECT id, title, subtitle FROM topics WHERE id = $1', [id]);
     if (t.rows.length === 0) return res.status(404).json({ error: '专题不存在' });
     const a = await query(
-      `SELECT a.id, a.title, a.summary, a.category, a.read_time, a.created_at
+      `SELECT a.id, a.title, a.summary, a.category, a.read_time, a.cover, a.created_at
        FROM topic_articles ta JOIN articles a ON a.id = ta.article_id
        WHERE ta.topic_id = $1 ORDER BY a.id`,
       [id]
