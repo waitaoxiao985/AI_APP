@@ -23,7 +23,7 @@
 | 界面 | Design DNA 驱动的 CSS 设计系统 + Phosphor Icons（21px 字号档，Regular/Fill 双状态） |
 | 字体 | 系统无衬线栈（SF Pro / HarmonyOS Sans / PingFang / Segoe UI），**零网络字体依赖**；数字启用 `tabular-nums` |
 | 后端 | Node.js + Express 4 + pg（PostgreSQL 驱动） |
-| 数据库 | openGauss（兼容 PostgreSQL 协议） |
+| 数据库 | 云端 Neon PostgreSQL（本地开发可选 openGauss，兼容 PostgreSQL 协议） |
 | 认证 | bcryptjs 密码加密 + jsonwebtoken（JWT，7 天有效） |
 | 快讯采集 | `rss-parser` 抓 RSS/Atom + `node-cron` 定时同步（08:30），正文长度过滤与降级源判定 |
 
@@ -111,7 +111,7 @@ AI_APP/
 │       ├── init-db.js            建表 + 种子（先 init.sql 再 seed-deep）
 │       ├── reset-db.js           清库重建
 │       ├── seed-deep.js          深度长文种子（幂等，可单独执行）
-│       ├── news-sync.js          快讯采集：8 源 RSS + 长度过滤 + 降级源 + 存量清理
+│       ├── news-sync.js          快讯采集：5 个 AI 垂直源（RSSHub）+ 长度过滤 + 存量清理
 │       ├── fetch-news.mjs        手动触发一次同步
 │       └── routes/
 │           ├── auth.js           注册 / 登录 / 我的信息
@@ -147,22 +147,95 @@ AI_APP/
 
 ## 运行拓扑
 
+**线上（推荐，数据库云托管）**：
+
 ```
-浏览器 → 前端 Vite (5173) ──代理 /api──→ 后端 Express (3003) ──pg──→ openGauss (192.168.159.134:7654)
+手机 / 浏览器 → Vercel 前端 ──rewrite /api──→ Vercel 后端 ──pg──→ Neon PostgreSQL（公网）
 ```
 
-- 前端、后端可跑在同一台机器（开发机 / 宿主机）
-- 数据库跑在独立的 openEuler 虚拟机（openGauss），走 TCP 7654 端口
+**本地开发**：
+
+```
+浏览器 → 前端 Vite (5173) ──代理 /api──→ 后端 Express (3003) ──pg──→ Neon PostgreSQL
+                                                              └─可选─→ openGauss (192.168.159.136:7654)
+```
+
+- 线上主路径：数据库用免费托管 PostgreSQL（Neon），本机虚拟机可保持关机
+- 本地开发默认走同一 Neon 库；离线时在 `.env` 注释掉 `DATABASE_URL` 即回退直连 openGauss
 
 ## 环境要求
 
 - Node.js 18+（开发时使用 v24）
 - npm 9+
-- openGauss 2.1+（或任意 PostgreSQL 兼容数据库）
+- 云端：Neon（或任意 PostgreSQL 兼容托管数据库）；离线开发可选 openGauss 2.1+
 
 ## 部署运行
 
-### 1. 准备数据库（openGauss）
+### 1. 准备数据库（推荐：云端 Neon，本机零依赖）
+
+1. 注册 https://neon.com（免费层无需信用卡），创建项目（区域选 Singapore / us-east-1 均可）
+2. Dashboard → **Connect** → 复制 **Pooled connection**（host 带 `-pooler` 后缀）
+3. 将连接串写入 `backend/.env` 的 `DATABASE_URL`（`.env.example` 已给示例）
+
+### 2. 初始化表结构和种子数据
+
+```bash
+cd backend
+npm install
+copy .env.example .env    # 填入 DATABASE_URL（或离线时用下方 DB_* 直连 openGauss）
+npm run init-db           # 建 users / articles / bookmarks 等表 + 10 篇种子文章
+npm run seed-deep        # 仅追加深度长文（幂等，不删表，可对已有库执行）
+npm run fetch-news       # 首次抓取快讯（之后由每日 08:30 定时任务自动补）
+```
+
+`.env` 示例（云端优先）：
+
+```
+DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx-pooler.us-east-1.aws.neon.tech/ai_app?sslmode=require
+JWT_SECRET=ai-app-secret-2026
+PORT=3003
+SYNC_TOKEN=change-me        # 手动触发快讯同步的 token
+CRON_SECRET=change-me       # Vercel Cron 鉴权
+```
+
+离线开发（可选）：注释掉 `DATABASE_URL`，改用下方 `DB_*` 直连本机 openGauss：
+
+```
+DB_HOST=192.168.159.136
+DB_PORT=7654
+DB_NAME=aiapp
+DB_USER=appuser
+DB_PASSWORD=Secure@2026
+```
+
+### 3. 启动后端
+
+```bash
+npm run dev
+# 后端已启动 http://localhost:3003
+```
+
+### 4. 启动前端
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+# 打开 http://localhost:5173
+```
+
+### 5. 上线部署（Vercel）
+
+- **后端**（项目 `ai-app-backend`）：`cd backend && npx vercel --prod`
+  - 环境变量需配置：`DATABASE_URL`（Neon pooler 串）、`JWT_SECRET`、`SYNC_TOKEN`、`CRON_SECRET`
+  - `vercel.json` 已配置 cron：每日 **08:30（北京时间，`30 0 * * *` UTC）** 触发 `/api/news/sync`，用 `CRON_SECRET` 走 Bearer 鉴权
+- **前端**（项目 `ai-app`）：`cd frontend && npx vercel --prod`
+  - `vercel.json` 已配置 `/api/*` rewrite 到后端域名
+- 手动触发一次快讯采集：`GET <后端域名>/api/news/sync?token=<SYNC_TOKEN>`
+
+> **国内访问提示**：`*.vercel.app` 与 Neon 端点在中国大陆访问不稳定。面向国内手机市场的正式发布，建议后续迁移到国内云（腾讯云/阿里云 RDS PostgreSQL + 备案域名），属独立变更。
+
+### 可选：本地 openGauss 自建（仅离线开发）
 
 在 openGauss 所在机器上执行（超管 `opengauss`）：
 
@@ -182,44 +255,6 @@ host  all  all  192.168.159.0/24  md5
 > **坑 1**：`password_encryption_type` 必须是 `0`（标准 PostgreSQL md5）。默认值 `2` 是 sha256，openGauss 会走它自有的认证协议，`node-postgres` 无法完成握手（报 `Cannot read properties of undefined (reading 'message')`）。该参数是 postmaster 级，改完必须重启才生效。
 
 > **坑 2**：openGauss 的 systemd 服务是 oneshot 类型，改配置后 `systemctl restart` 不会杀掉旧进程，必须先 `pkill -u opengauss` 再 `systemctl start`。
-
-### 2. 初始化表结构和种子数据
-
-```bash
-cd backend
-npm install
-copy .env.example .env    # 按实际环境修改数据库连接信息
-npm run init-db           # 建 users / articles / bookmarks 三张表 + 10 篇种子文章
-npm run seed-deep        # 仅追加深度长文（幂等，不删表，可对已有库执行）
-```
-
-`.env` 示例：
-
-```
-DB_HOST=192.168.159.134
-DB_PORT=7654
-DB_NAME=aiapp
-DB_USER=appuser
-DB_PASSWORD=Secure@2026
-JWT_SECRET=ai-app-secret-2026
-PORT=3003
-```
-
-### 3. 启动后端
-
-```bash
-npm run dev
-# 后端已启动 http://localhost:3003
-```
-
-### 4. 启动前端
-
-```bash
-cd ../frontend
-npm install
-npm run dev
-# 打开 http://localhost:5173
-```
 
 ## API 接口
 
@@ -264,7 +299,7 @@ npm run dev
 - **3 个专题**，按分类自动挂载文章
 - 所有种子均为幂等写法（`WHERE NOT EXISTS`），可重复执行
 
-快讯入库规则：正文中短于 120 字不入库；InfoQ中文 / 量子位 / 少数派 / Google AI 四个源的 RSS 只给标题与链接，按「仅标题 + 摘要 + 原文链接」降级处理，不做 HTML 全文提取。
+快讯入库规则：只采集 AI 垂直源——量子位、雷峰网（人工智能栏目）、AIbase 资讯、AIbase 日报、智源社区，均经自建 RSSHub 路由取正文。正文短于 120 字的不入库，只保留「标题 + 摘要 + 原文链接」，不做 HTML 站点抓取。
 
 ## 内容与版权说明
 
