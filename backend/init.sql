@@ -14,8 +14,11 @@ CREATE TABLE IF NOT EXISTS articles (
   content TEXT NOT NULL,
   category VARCHAR(50) NOT NULL,
   read_time VARCHAR(20),
+  cover VARCHAR(300),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS cover VARCHAR(300);
 
 CREATE TABLE IF NOT EXISTS bookmarks (
   id SERIAL PRIMARY KEY,
@@ -157,8 +160,31 @@ CREATE TABLE IF NOT EXISTS news (
   published_at TIMESTAMP,
   excerpt VARCHAR(500),
   content TEXT,
+  title_zh VARCHAR(300),
+  summary VARCHAR(200),
   fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 DROP INDEX IF EXISTS idx_news_published;
 CREATE INDEX idx_news_published ON news(published_at);
+
+-- 今日新闻（通用新闻，独立于 AI 快讯 news 表；只存摘要不存正文）
+CREATE TABLE IF NOT EXISTS daily_news (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(300) NOT NULL,
+  link VARCHAR(500) UNIQUE NOT NULL,
+  source VARCHAR(100),
+  category VARCHAR(20) NOT NULL,
+  published_at TIMESTAMP,
+  excerpt VARCHAR(500),
+  summary VARCHAR(200),
+  date DATE,
+  fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS idx_daily_news_published;
+CREATE INDEX idx_daily_news_published ON daily_news(published_at);
+DROP INDEX IF EXISTS idx_daily_news_date;
+CREATE INDEX idx_daily_news_date ON daily_news(date);
+DROP INDEX IF EXISTS idx_daily_news_date_category;
+CREATE INDEX idx_daily_news_date_category ON daily_news(date, category);
