@@ -161,6 +161,11 @@ export default function Article({ user }) {
 
       {article && (
         <div className="enter">
+          {article.cover && (
+            <div className="cover article-hero" data-cat={article.category}>
+              <img className="cover-img" src={article.cover} alt="" />
+            </div>
+          )}
           <header>
             <span className="tag">{article.category}</span>
             <h1>{article.title}</h1>

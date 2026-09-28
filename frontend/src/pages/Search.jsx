@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Clock, MagnifyingGlass, MagnifyingGlassPlus } from '@phosphor-icons/react'
 import { searchArticles, getHotSearch } from '../api.js'
+import Cover from '../components/Cover.jsx'
 import { relTime } from '../time.js'
 
 export default function Search() {
@@ -117,7 +118,7 @@ export default function Search() {
         <section className="row-list" aria-label="搜索结果">
           {articles.map((a, i) => (
             <Link key={a.id} to={'/article/' + a.id} className="row enter" style={{ '--i': i }}>
-              <div className="cover" data-cat={a.category} />
+              <Cover category={a.category} src={a.cover} alt={a.title} />
               <div className="row-body">
                 <span className="tag">{a.category}</span>
                 <h3>{a.title}</h3>

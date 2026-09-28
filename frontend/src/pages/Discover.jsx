@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MagnifyingGlass, Clock, BookmarkSimple, CaretLeft, CaretRight, Books } from '@phosphor-icons/react'
-import { getDaily, getTopics, getBookmarksRecent, getNews, getCategories, getArticles } from '../api.js'
-import { relTime } from '../time.js'
+import {
+  MagnifyingGlass,
+  Clock,
+  BookmarkSimple,
+  CaretLeft,
+  CaretRight,
+  Books,
+  Newspaper,
+  CalendarBlank,
+  Sparkle
+} from '@phosphor-icons/react'
+import { getDaily, getTopics, getBookmarksRecent } from '../api.js'
+import Cover from '../components/Cover.jsx'
+import ModuleCard from '../components/ModuleCard.jsx'
 
 export default function Discover({ user }) {
   const [daily, setDaily] = useState([])
@@ -14,38 +25,8 @@ export default function Discover({ user }) {
   const [slide, setSlide] = useState(0)
   const [recent, setRecent] = useState([])
   const [favTotal, setFavTotal] = useState(0)
-  const [news, setNews] = useState([])
-  const [cats, setCats] = useState(['全部'])
-  const [cat, setCat] = useState('全部')
-  const [list, setList] = useState([])
-  const [listLoading, setListLoading] = useState(true)
   const navigate = useNavigate()
   const touchX = useRef(0)
-
-  useEffect(() => {
-    getCategories()
-      .then((d) => setCats(['全部', ...d.categories]))
-      .catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    let alive = true
-    setListLoading(true)
-    getArticles(cat, 100)
-      .then((d) => {
-        if (!alive) return
-        setList(d.articles)
-        setListLoading(false)
-      })
-      .catch(() => {
-        if (!alive) return
-        setList([])
-        setListLoading(false)
-      })
-    return () => {
-      alive = false
-    }
-  }, [cat])
 
   useEffect(() => {
     if (!user) {
@@ -70,12 +51,11 @@ export default function Discover({ user }) {
     let alive = true
     setLoading(true)
     setError('')
-    Promise.all([getDaily(), getTopics(), getNews(6)])
-      .then(([dayData, topicData, newsData]) => {
+    Promise.all([getDaily(), getTopics()])
+      .then(([dayData, topicData]) => {
         if (!alive) return
         setDaily(dayData.articles)
         setTopics(topicData.topics)
-        setNews(newsData.news)
         setLoading(false)
       })
       .catch((err) => {
@@ -182,7 +162,7 @@ export default function Discover({ user }) {
                 aria-hidden={i !== slide}
                 tabIndex={i === slide ? 0 : -1}
               >
-                <div className="cover" data-cat={a.category} />
+                <Cover category={a.category} src={a.cover} alt={a.title} />
                 <div className="carousel-scrim" />
                 <div className="carousel-copy">
                   <span className="tag">{a.category}</span>
@@ -217,77 +197,13 @@ export default function Discover({ user }) {
 
       {!loading && !error && (
         <>
-          <p className="sub-eyebrow module-head">分类</p>
-          <div className="chips" role="group" aria-label="文章分类">
-            {cats.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={c === cat ? 'chip chip-on' : 'chip'}
-                aria-pressed={c === cat}
-                onClick={() => setCat(c)}
-              >
-                {c}
-              </button>
-            ))}
+          <p className="sub-eyebrow module-head">快捷入口</p>
+          <div className="module-grid enter" aria-label="快捷入口">
+            <ModuleCard title="知识分类" subtitle="按主题浏览文章" icon={Books} to="/articles" />
+            <ModuleCard title="AI 快讯" subtitle="每日行业动态" icon={Newspaper} to="/news" />
+            <ModuleCard title="今日新闻" subtitle="按日期翻阅快讯" icon={CalendarBlank} to="/news-today" />
+            <ModuleCard title="更多内容" subtitle="预留入口 · 后续接入新功能" icon={Sparkle} to="/articles" />
           </div>
-
-          {listLoading && (
-            <div aria-hidden="true">
-              {[0, 1, 2].map((i) => (
-                <div className="sk-row" key={i}>
-                  <div className="sk sk-cover" />
-                  <div className="sk-lines">
-                    <div className="sk sk-line w-40" />
-                    <div className="sk sk-line w-90" />
-                    <div className="sk sk-line w-55" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!listLoading && list.length === 0 && (
-            <div className="empty enter">
-              <div className="empty-art" aria-hidden="true">
-                <Books size={23} />
-              </div>
-              <p className="empty-title">无匹配记录</p>
-              <p className="empty-copy">该分类下暂时没有文章，换个分类看看。</p>
-            </div>
-          )}
-
-          {!listLoading && list.length > 0 && (
-            <>
-              <section className="row-list" aria-label="文章列表">
-                {list.slice(0, 3).map((a, i) => (
-                  <Link key={a.id} to={'/article/' + a.id} className="row enter" style={{ '--i': i }}>
-                    <div className="cover" data-cat={a.category} />
-                    <div className="row-body">
-                      <span className="tag">{a.category}</span>
-                      <h3>{a.title}</h3>
-                      <p>{a.summary}</p>
-                      <div className="meta">
-                        <Clock size={12} />
-                        <span>{a.read_time}</span>
-                        {a.created_at && (
-                          <>
-                            <span className="meta-dot" aria-hidden="true" />
-                            <span>{relTime(a.created_at)}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </section>
-
-              <Link to="/articles" className="more-row enter" style={{ '--i': 3 }}>
-                查看全部 {list.length} 篇文章
-                <CaretRight size={14} />
-              </Link>
-            </>
-          )}
         </>
       )}
 
@@ -311,29 +227,6 @@ export default function Discover({ user }) {
               {promo + 1}/{topics.length}
             </span>
           </button>
-        </>
-      )}
-
-      {!loading && !error && news.length > 0 && (
-        <>
-          <div className="module-head-row">
-            <p className="sub-eyebrow module-head">AI 快讯</p>
-            <Link className="module-more" to="/news">
-              更多
-              <CaretRight size={12} />
-            </Link>
-          </div>
-          <section className="news-strip enter" aria-label="AI 快讯">
-            {news.map((n) => (
-              <Link key={n.id} to={'/news/' + n.id} className="news-card">
-                <span className="news-source">{n.source}</span>
-                <p className="news-title">{n.title}</p>
-                <span className="news-time">
-                  {n.published_at ? new Date(n.published_at).toLocaleDateString('zh-CN') : ''}
-                </span>
-              </Link>
-            ))}
-          </section>
         </>
       )}
 

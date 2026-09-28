@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookmarkSimple, Clock, SignOut, Books } from '@phosphor-icons/react'
 import { getBookmarks } from '../api.js'
+import Cover from '../components/Cover.jsx'
 
 export default function Profile({ user, logout }) {
   const [bookmarks, setBookmarks] = useState([])
@@ -80,7 +81,7 @@ export default function Profile({ user, logout }) {
         <section className="row-list" aria-label="收藏列表">
           {bookmarks.map((b, i) => (
             <Link key={b.id} to={'/article/' + b.article_id} className="row enter" style={{ '--i': i }}>
-              <div className="cover" data-cat={b.category} />
+              <Cover category={b.category} src={b.cover} alt={b.title} />
               <div className="row-body">
                 <span className="tag">{b.category}</span>
                 <h3>{b.title}</h3>

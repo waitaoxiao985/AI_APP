@@ -10,6 +10,7 @@ import Profile from './pages/Profile.jsx'
 import Topic from './pages/Topic.jsx'
 import Articles from './pages/Articles.jsx'
 import News from './pages/News.jsx'
+import NewsToday from './pages/NewsToday.jsx'
 import NewsDetail from './pages/NewsDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
 
@@ -114,7 +115,8 @@ export default function App() {
     location.pathname.startsWith('/article/') ||
     location.pathname.startsWith('/articles') ||
     location.pathname.startsWith('/topic/') ||
-    location.pathname.startsWith('/news/')
+    location.pathname.startsWith('/news/') ||
+    location.pathname.startsWith('/news-today')
 
   return (
     <div className="app">
@@ -131,6 +133,7 @@ export default function App() {
           <Route path="/topic/:id" element={<Topic />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/news" element={<News />} />
+          <Route path="/news-today" element={<NewsToday />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/today" element={<TodayRedirect />} />
           <Route path="*" element={<NotFound />} />

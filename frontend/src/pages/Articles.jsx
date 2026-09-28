@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { CaretLeft, Clock, Books } from '@phosphor-icons/react'
 import { getArticles, getCategories } from '../api.js'
 import { relTime } from '../time.js'
+import Cover from '../components/Cover.jsx'
 
 export default function Articles() {
   const navigate = useNavigate()
-  const [cats, setCats] = useState(['全部'])
-  const [cat, setCat] = useState('全部')
+  const [cats, setCats] = useState([])
+  const [cat, setCat] = useState('AI 安全')
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -15,7 +16,7 @@ export default function Articles() {
 
   useEffect(() => {
     getCategories()
-      .then((d) => setCats(['全部', ...d.categories]))
+      .then((d) => setCats(d.categories))
       .catch(() => {})
   }, [])
 
@@ -107,7 +108,7 @@ export default function Articles() {
         <section className="row-list" aria-label="全部文章">
           {list.map((a, i) => (
             <Link key={a.id} to={'/article/' + a.id} className="row enter" style={{ '--i': Math.min(i, 8) }}>
-              <div className="cover" data-cat={a.category} />
+              <Cover category={a.category} src={a.cover} alt={a.title} />
               <div className="row-body">
                 <span className="tag">{a.category}</span>
                 <h3>{a.title}</h3>

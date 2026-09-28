@@ -270,6 +270,26 @@ body {
 .cover[data-cat='AI 安全'] { --c-a: 0.24; }
 .cover[data-cat='应用实践'] { --c-a: 0.34; }
 
+/* 生成封面：统一蓝色双色调，保证与单色设计体系一致，不引入第二色相 */
+.cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(100%) sepia(1) hue-rotate(172deg) saturate(5.5) brightness(0.92) contrast(1.08);
+  mix-blend-mode: luminosity;
+  opacity: 0.92;
+}
+
+.article-hero {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border-radius: var(--r-md);
+  margin-bottom: 18px;
+}
+
 /* ---------- 列表行：圆角卡片流，卡间 12px，无分隔线 (components.card_style) ---------- */
 
 .row-list {
@@ -672,6 +692,11 @@ input[aria-invalid='true'] {
   background: var(--bg);
   padding-top: 78px;
   padding-bottom: 116px;
+}
+
+/* 列表页顶部固定栏：让出 detail-bar 高度的顶部内边距 */
+.news-page {
+  padding-top: 78px;
 }
 
 .detail-bar,
@@ -1134,10 +1159,12 @@ input[aria-invalid='true'] {
   padding: 6px 0 0;
 }
 
+.w-30 { width: 30%; }
 .w-40 { width: 40%; }
 .w-45 { width: 45%; }
 .w-55 { width: 55%; }
 .w-60 { width: 60%; }
+.w-68 { width: 68%; }
 .w-88 { width: 88%; }
 .w-90 { width: 90%; }
 .w-92 { width: 92%; }
@@ -1208,6 +1235,11 @@ input[aria-invalid='true'] {
 /* ---------- 悬停 (design_style.interaction_feel) ---------- */
 
 @media (hover: hover) and (pointer: fine) {
+  .module-card:hover {
+    border-color: var(--accent-tint);
+    box-shadow: var(--glow-accent);
+  }
+
   .chip:hover {
     background: var(--surface);
     border-color: rgba(255, 255, 255, 0.18);
@@ -1218,6 +1250,22 @@ input[aria-invalid='true'] {
     background: var(--accent-press);
     border-color: var(--accent-press);
     color: var(--on-accent);
+  }
+
+  .board-card:hover {
+    border-color: var(--accent-tint);
+    color: var(--text);
+  }
+
+  .board-card-active:hover {
+    background: var(--accent-press);
+    border-color: var(--accent-press);
+    color: var(--on-accent);
+  }
+
+  .news-date-btn:hover {
+    border-color: var(--accent-tint);
+    color: var(--text);
   }
 
   .row:hover {
@@ -1675,86 +1723,186 @@ input[aria-invalid='true'] {
   line-height: 1.7;
 }
 
-/* ===== AI news strip + list + detail ===== */
+/* ===== AI news list + detail ===== */
 
-.module-head-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 22px;
+/* ===== 快捷入口卡片网格（标准化方框卡片，样式对齐 news-card 范式） ===== */
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.module-head-row .module-head {
-  margin: 0;
-}
-
-.module-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--accent-strong);
-  text-decoration: none;
-}
-
-.news-strip {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  margin: 12px -16px 0;
-  padding: 2px 16px 8px;
-  scrollbar-width: none;
-}
-
-.news-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.news-card {
-  flex-shrink: 0;
-  width: 218px;
-  min-height: 116px;
+.module-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px 13px;
+  padding: 14px;
   border: 1px solid var(--line-strong);
   border-radius: var(--r-lg);
   background: var(--surface);
   text-decoration: none;
   color: inherit;
   box-shadow: var(--shadow-low);
-  transition: border-color var(--dur-normal) var(--ease), box-shadow var(--dur-normal) var(--ease);
+  transition: border-color var(--dur-normal) var(--ease), box-shadow var(--dur-normal) var(--ease), transform var(--dur-micro) var(--ease);
 }
 
-.news-card:hover,
-.news-card:focus-visible {
-  border-color: rgba(41, 119, 203, 0.5);
+.module-card:active {
+  transform: translateY(1px);
+}
+
+.module-card:focus-visible {
+  border-color: var(--accent-tint);
   box-shadow: var(--glow-accent);
 }
 
-.news-source {
-  font-family: var(--font-mono);
-  font-size: 10px;
+.module-card-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--accent-tint);
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.module-card-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.module-card-sub {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-2);
+  letter-spacing: 0;
+}
+
+.module-card-go {
+  position: absolute;
+  right: 12px;
+  top: 16px;
+  display: inline-flex;
+  align-items: center;
   color: var(--accent-strong);
 }
 
-.news-title {
-  flex: 1;
-  font-family: var(--font-body);
-  font-size: 13.5px;
+/* ===== 今日新闻：板块组件 ===== */
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.board-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--text-2);
+  font-family: var(--font-heading);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    transform var(--dur-micro) var(--ease);
+}
+
+.board-card:active {
+  transform: translateY(1px);
+}
+
+.board-card-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.board-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.board-card-name {
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.55;
+}
+
+.news-load-more {
+  padding: 16px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.news-date-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.news-date-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease);
+}
+
+.news-date-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.news-date-label {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
-  letter-spacing: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 今日新闻日期分组 ===== */
+
+.news-today-group {
+  margin-top: 22px;
+}
+
+.news-today-title {
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-strong);
 }
 
 .news-time {
@@ -1816,6 +1964,154 @@ input[aria-invalid='true'] {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ---------- 快讯列表：来源 chip（深蓝单色体系分级） ---------- */
+
+.news-row {
+  position: relative;
+}
+
+/* 给右上角收藏按钮让出位置，避免遮挡时间（仅 /news 页生效） */
+.news-page .news-item-top {
+  padding-right: 34px;
+}
+
+.news-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--text-3);
+}
+
+.news-chip-tone-1 {
+  border-color: var(--line);
+  color: var(--text-3);
+}
+
+.news-chip-tone-2 {
+  border-color: var(--accent-tint);
+  color: var(--text-2);
+}
+
+.news-chip-tone-3 {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+  color: var(--text-2);
+}
+
+.news-chip-tone-4 {
+  background: var(--accent-tint);
+  border-color: var(--accent-tint);
+  color: var(--accent-strong);
+}
+
+.news-chip-tone-5 {
+  background: var(--accent-tint);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.news-chip-tone-neutral {
+  background: var(--sunken);
+  border-color: var(--line-strong);
+  color: var(--text-3);
+}
+
+/* ---------- 快讯列表：标题截断 / 中文副行 / 已读态 ---------- */
+
+.news-item-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.news-item p.news-item-subtitle {
+  margin-top: 3px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.news-item-read .news-item-title,
+.news-item-read .news-item-subtitle {
+  opacity: 0.5;
+}
+
+/* ---------- 快讯列表：收藏按钮（默认隐藏，hover / 键盘焦点显示） ---------- */
+
+.news-fav {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  background: var(--sunken);
+  color: var(--text-3);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-micro) var(--ease),
+    color var(--dur-micro) var(--ease),
+    border-color var(--dur-micro) var(--ease),
+    background var(--dur-micro) var(--ease);
+}
+
+.news-fav[aria-pressed='true'] {
+  color: var(--accent-strong);
+  border-color: var(--accent-tint);
+}
+
+.news-fav:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .news-row:hover .news-fav,
+  .news-row:focus-within .news-fav {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .news-fav:hover {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border-color: var(--accent);
+    box-shadow: none;
+  }
+}
+
+/* ---------- 快讯列表：离线缓存标注 ---------- */
+
+.news-stale {
+  margin: 0 0 10px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
 }
 
 /* 源站只给标题与链接时的降级卡片 */

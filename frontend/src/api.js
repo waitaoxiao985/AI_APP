@@ -63,12 +63,34 @@ export function getBookmarksRecent(limit) {
   return request('/bookmarks/recent?limit=' + limit)
 }
 
-export function getNews(limit) {
-  return request('/news' + (limit ? '?limit=' + limit : ''))
+export function getNews(limit, offset) {
+  const params = new URLSearchParams()
+  if (limit) params.set('limit', String(limit))
+  if (offset) params.set('offset', String(offset))
+  const qs = params.toString()
+  return request('/news' + (qs ? '?' + qs : ''))
 }
 
 export function getNewsItem(id) {
   return request('/news/' + id)
+}
+
+export function getDailyNews(category, limit) {
+  const params = new URLSearchParams()
+  if (category) params.set('category', category)
+  if (limit) params.set('limit', String(limit))
+  const qs = params.toString()
+  return request('/daily-news' + (qs ? '?' + qs : ''))
+}
+
+export function getNewsToday(date, category, limit, offset) {
+  const params = new URLSearchParams()
+  if (date) params.set('date', date)
+  if (category && category !== '全部') params.set('category', category)
+  if (limit) params.set('limit', String(limit))
+  if (offset) params.set('offset', String(offset))
+  const qs = params.toString()
+  return request('/news/today' + (qs ? '?' + qs : ''))
 }
 
 export function getTopics() {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { CaretLeft, Clock, Books } from '@phosphor-icons/react'
 import { getTopic } from '../api.js'
+import Cover from '../components/Cover.jsx'
 import { relTime } from '../time.js'
 
 export default function Topic() {
@@ -89,7 +90,7 @@ export default function Topic() {
           <section className="row-list" aria-label="专题文章">
             {data.articles.map((a, i) => (
               <Link key={a.id} to={'/article/' + a.id} className="row enter" style={{ '--i': i }}>
-                <div className="cover" data-cat={a.category} />
+                <Cover category={a.category} src={a.cover} alt={a.title} />
                 <div className="row-body">
                   <span className="tag">{a.category}</span>
                   <h3>{a.title}</h3>
