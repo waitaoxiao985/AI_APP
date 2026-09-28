@@ -68,11 +68,16 @@ cd frontend && npx vite build     # 必跑，无报错才算完
 
 ## 四、已知坑（先看这里，能省很多时间）
 
-1. **git push 失败**：仓库级 `http.proxy` / `https.proxy` 是**空字符串**，覆盖了全局代理，导致直连 443 被拦。绕过方式：
+1. **git push 失败**：仓库级 `http.proxy` / `https.proxy` 是**空字符串**（覆盖了全局代理），但**直连 443 是通的**，直接推即可：
    ```bash
-   git -c http.proxy=http://127.0.0.1:7890 -c https.proxy=http://127.0.0.1:7890 push
+   git -c "http.proxy=" -c "https.proxy=" push origin main
    ```
-   （不要擅自改用户 git config。）
+   反过来**不要**给 push 挂代理：实测走 `127.0.0.1:7890` 会在 packfile 上传阶段被掐断，报
+   `curl 56 Recv failure: Connection was reset` + `send-pack: unexpected disconnect`。
+   该症状极易误判——`git ls-remote` 走同一代理**能成功**（小 GET 不受影响），
+   于是看起来"代理是通的，是直连被拦"，实际恰好相反。`http.postBuffer` 调大会**加重**问题。
+   判据：`ls-remote` 通 + `push` 断 = 代理问题，改用空代理直连。
+   （不要擅自改用户 git config；本地无 SSH 私钥，`~/.ssh` 仅有 `known_hosts`。）
 2. **PowerShell 里别写内联 node**：`node -e "..."` 的引号会被吞；`>` 重定向会写成 **UTF-16**；中文在控制台显示为乱码但**文件本身是 UTF-8**。
    → **一律把脚本写成临时 `.mjs` 文件再 `node xxx.mjs`**。
 3. **别信浏览器截图判断样式**：曾出现 `page.screenshot()` 返回陈旧渲染（与同一程序内的 DOM 断言矛盾）。
