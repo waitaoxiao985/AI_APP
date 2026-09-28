@@ -6,12 +6,13 @@
 
 ## 功能特性
 
-1. **首页信息流** — 顶部品牌区（图标 + 标题 + 副标题 + 圆形搜索入口）→ 今日推荐轮播（自动播放 / 触摸滑动 / 圆点指示 / 左右箭头）→ 分类筛选与文章列表（首页只放 3 篇，底部「查看全部 N 篇文章」进全量页）→ 专题轮播 → AI 快讯 → 收藏预览
+1. **首页信息流** — 顶部品牌区（字形 + 标题 + 副标题 + 圆形搜索入口）→ 今日推荐轮播（自动播放 / 触摸滑动 / 圆点指示 / 左右箭头）→ 快捷入口卡片组（知识分类 / AI 快讯 / 今日新闻 / 更多内容）→ 专题轮播 → 收藏预览
 2. **全部文章** — `/articles` 全量列表 + 分类筛选，顶栏返回
 3. **搜索** — 按标题 / 摘要 / 正文检索，热词来自 `search_logs` 的搜索日志聚合
 4. **专题** — `/topic/:id` 专题聚合页；`/today` 取当日推荐后跳转
-5. **AI 快讯** — 每日 08:30 定时抓取 + 启动补跑，8 个 RSS 源、按 link 去重、上限 300 条。RSS 带全文的直接阅读，只给链接的降级为「标题 + 摘要 + 阅读原文」
-6. **长文阅读 / 收藏 / 登录注册** — 参考文献与版权声明随文排版、JWT 鉴权收藏、bcrypt 密码加密
+5. **AI 快讯** — 每日 08:30 定时抓取 + 启动补跑，共 6 个源（5 个 AI 垂直媒体经自建 RSSHub 取全文、Hacker News 经 Algolia 按关键词检索），按 link 去重、上限 300 条。取到全文的直接阅读，只给链接的降级为「标题 + 摘要 + 阅读原文」
+6. **今日新闻** — `/news-today` 按日期与板块（财经 / 政治 / 军事 / 游戏）翻阅；每日 08:35、20:35 两次采集
+7. **长文阅读 / 收藏 / 登录注册** — 参考文献与版权声明随文排版、JWT 鉴权收藏、bcrypt 密码加密
 
 底部导航 2 个 tab（首页 / 我的），其余为带返回栏的二级页。
 
@@ -25,13 +26,13 @@
 | 后端 | Node.js + Express 4 + pg（PostgreSQL 驱动） |
 | 数据库 | 云端 Neon PostgreSQL（本地开发可选 openGauss，兼容 PostgreSQL 协议） |
 | 认证 | bcryptjs 密码加密 + jsonwebtoken（JWT，7 天有效） |
-| 快讯采集 | `rss-parser` 抓 RSS/Atom + `node-cron` 定时同步（08:30），正文长度过滤与降级源判定 |
+| 快讯采集 | `rss-parser` 抓 RSS/Atom + Hacker News Algolia API + `node-cron` 定时同步（08:30 / 08:35 / 20:35），正文长度过滤与存量治理 |
 
 ## 界面设计
 
 界面风格由一份 **Design DNA** JSON 驱动：先把审美方向结构化成三个维度的字段，再把字段逐条翻译成代码，避免「凭感觉调样式」。
 
-文件：`frontend/design-dna.ai-blue.json`（由参考截图测色生成，替代早期的 `design-dna.cyber-terminal.json`）
+文件：`frontend/design-dna.ai-blue.json`（由参考截图测色生成）
 
 ### 三个维度
 
@@ -106,38 +107,48 @@ AI_APP/
 │   ├── init.sql                  建表 + 10 篇入门种子文章
 │   ├── seed-deep-articles.sql    深度长文（文末含参考文献与版权声明）
 │   └── src/
-│       ├── server.js             Express 入口（3000 起 3003），注册路由 + cron
+│       ├── server.js             Express 入口（3003），注册路由 + 安全中间件 + cron
 │       ├── db.js                 pg 连接池
 │       ├── init-db.js            建表 + 种子（先 init.sql 再 seed-deep）
 │       ├── reset-db.js           清库重建
 │       ├── seed-deep.js          深度长文种子（幂等，可单独执行）
-│       ├── news-sync.js          快讯采集：5 个 AI 垂直源（RSSHub）+ 长度过滤 + 存量清理
-│       ├── fetch-news.mjs        手动触发一次同步
+│       ├── news-sync.js          快讯采集：5 个 AI 垂直源（RSSHub）+ Hacker News + 长度过滤 + 存量治理
+│       ├── daily-news-sync.js    今日新闻采集（按 财经 / 政治 / 军事 / 游戏 板块归档）
+│       ├── gen-covers.mjs        生成文章封面占位图
+│       ├── fetch-news.mjs        手动触发一次快讯同步
+│       ├── fetch-daily-news.mjs  手动触发一次今日新闻同步
 │       └── routes/
 │           ├── auth.js           注册 / 登录 / 我的信息
 │           ├── articles.js       列表 / 分类 / 搜索 / 今日推荐 / 热词 / 详情
 │           ├── bookmarks.js      收藏列表 / 最近 / 加收 / 取消
 │           ├── topics.js         专题列表 / 专题详情
-│           └── news.js           快讯列表 / 快讯详情
+│           ├── news.js           快讯列表 / 快讯详情
+│           └── news-today.js     今日新闻（按日期 + 板块）
 ├── frontend/                     前端应用
 │   ├── package.json
-│   ├── vite.config.js            开发端口 5173，/api 代理到 3003
+│   ├── vite.config.js            开发端口 5173，/api 代理到 3003，PWA 配置
 │   ├── index.html                meta + theme-color（无网络字体）
 │   ├── design-dna.ai-blue.json   Design DNA 规范（三个维度）
+│   ├── public/covers/            文章封面占位图
 │   └── src/
 │       ├── main.jsx              React 挂载入口 + PWA
+│       ├── sw.js                 Service Worker（PWA 运行时缓存）
 │       ├── App.jsx               路由 / 底部导航 / useReveal 滚动入场
 │       ├── api.js                fetch 封装 + token 管理
 │       ├── time.js               相对时间（X 分钟前 / X 小时前）
 │       ├── index.css             设计系统（token + 组件 + 特效）
+│       ├── components/
+│       │   ├── ModuleCard.jsx    首页快捷入口卡片
+│       │   └── Cover.jsx         文章封面（按分类着色）
 │       └── pages/
 │           ├── Login.jsx         登录 / 注册（表单校验）
-│           ├── Discover.jsx      首页：轮播 + 分类 + 列表 + 专题 + 快讯 + 收藏
+│           ├── Discover.jsx      首页：品牌区 + 今日推荐轮播 + 快捷入口 + 专题 + 收藏
 │           ├── Articles.jsx      全部文章（分类筛选）
 │           ├── Search.jsx        搜索
 │           ├── Topic.jsx         专题详情
 │           ├── Article.jsx       长文详情 + 收藏 + 参考文献排版
 │           ├── News.jsx          快讯列表
+│           ├── NewsToday.jsx     今日新闻（按日期 / 板块翻阅）
 │           ├── NewsDetail.jsx    快讯详情（带正文 / 仅链接两种形态）
 │           ├── Profile.jsx       我的（收藏 + 退出）
 │           └── NotFound.jsx      404
@@ -183,20 +194,25 @@ AI_APP/
 cd backend
 npm install
 copy .env.example .env    # 填入 DATABASE_URL（或离线时用下方 DB_* 直连 openGauss）
-npm run init-db           # 建 users / articles / bookmarks 等表 + 10 篇种子文章
+npm run init-db           # 建 users / articles / bookmarks / news / daily_news 等表 + 10 篇种子文章
 npm run seed-deep        # 仅追加深度长文（幂等，不删表，可对已有库执行）
+npm run gen-covers       # 生成文章封面占位图（写入 frontend/public/covers）
 npm run fetch-news       # 首次抓取快讯（之后由每日 08:30 定时任务自动补）
+npm run fetch-daily-news # 首次抓取今日新闻（之后由每日 08:35 / 20:35 定时任务自动补）
 ```
 
 `.env` 示例（云端优先）：
 
 ```
 DATABASE_URL=postgresql://neondb_owner:xxx@ep-xxx-pooler.us-east-1.aws.neon.tech/ai_app?sslmode=require
-JWT_SECRET=ai-app-secret-2026
+JWT_SECRET=<32 字节以上随机串>   # 必填；留空或用弱串后端会拒绝启动
 PORT=3003
 SYNC_TOKEN=change-me        # 手动触发快讯同步的 token
 CRON_SECRET=change-me       # Vercel Cron 鉴权
+CORS_ORIGIN=http://localhost:5173   # 允许的前端来源，逗号分隔
 ```
+
+> `JWT_SECRET` 需 ≥ 32 字节，可用 `openssl rand -base64 48` 生成。`change-me`、`ai-app-secret-2026` 这类弱串会被启动校验直接拒绝。
 
 离线开发（可选）：注释掉 `DATABASE_URL`，改用下方 `DB_*` 直连本机 openGauss：
 
@@ -227,11 +243,12 @@ npm run dev
 ### 5. 上线部署（Vercel）
 
 - **后端**（项目 `ai-app-backend`）：`cd backend && npx vercel --prod`
-  - 环境变量需配置：`DATABASE_URL`（Neon pooler 串）、`JWT_SECRET`、`SYNC_TOKEN`、`CRON_SECRET`
-  - `vercel.json` 已配置 cron：每日 **08:30（北京时间，`30 0 * * *` UTC）** 触发 `/api/news/sync`，用 `CRON_SECRET` 走 Bearer 鉴权
+  - 环境变量需配置：`DATABASE_URL`（Neon pooler 串）、`JWT_SECRET`、`SYNC_TOKEN`、`CRON_SECRET`、`CORS_ORIGIN`（线上前端域名）
+  - 不需要配 `RSSHUB_BASE_URL`：云端访问不到本机 RSSHub，会自动回退到原生 feed
+  - `vercel.json` 已配置 cron：每日 **08:30（北京时间，`30 0 * * *` UTC）** 触发 `/api/news/sync`，该入口会同时执行快讯采集与今日新闻采集，用 `CRON_SECRET` 走 Bearer 鉴权
 - **前端**（项目 `ai-app`）：`cd frontend && npx vercel --prod`
   - `vercel.json` 已配置 `/api/*` rewrite 到后端域名
-- 手动触发一次快讯采集：`GET <后端域名>/api/news/sync?token=<SYNC_TOKEN>`
+- 手动触发一次采集：`GET <后端域名>/api/news/sync?token=<SYNC_TOKEN>`（同样会跑快讯与今日新闻两条链路）
 
 > **国内访问提示**：`*.vercel.app` 与 Neon 端点在中国大陆访问不稳定。面向国内手机市场的正式发布，建议后续迁移到国内云（腾讯云/阿里云 RDS PostgreSQL + 备案域名），属独立变更。
 
@@ -271,7 +288,8 @@ host  all  all  192.168.159.0/24  md5
 | GET | /api/articles/:id | 文章详情 | 否 |
 | GET | /api/topics | 专题列表（含各专题文章数） | 否 |
 | GET | /api/topics/:id | 专题详情 + 该专题文章 | 否 |
-| GET | /api/news | 快讯列表（limit ≤ 50） | 否 |
+| GET | /api/news | 快讯列表（limit ≤ 100，支持 offset） | 否 |
+| GET | /api/news/today | 今日新闻（date / category / limit / offset，返回当日各板块计数） | 否 |
 | GET | /api/news/:id | 快讯详情（正文可能为 null，表示仅链接） | 否 |
 | GET | /api/bookmarks | 我的收藏列表 | 是 |
 | GET | /api/bookmarks/recent?limit= | 最近收藏 + 总数 | 是 |
@@ -291,7 +309,8 @@ host  all  all  192.168.159.0/24  md5
 | topics | id, title(唯一), subtitle, created_at |
 | topic_articles | id, topic_id, article_id, created_at（topic_id + article_id 唯一） |
 | search_logs | term(唯一), hits, updated_at —— 搜索词计数，供热词接口聚合 |
-| news | id, title, link(唯一), source, published_at, excerpt, content, fetched_at —— `content` 为 null 表示源站未给正文 |
+| news | id, title, title_zh, summary, link(唯一), source, published_at, excerpt, content, fetched_at —— `content` 为 null 表示源站未给正文，`title_zh` 存中文标题 |
+| daily_news | id, title, link(唯一), source, category, published_at, excerpt, summary, date, fetched_at —— 今日新闻按 `date` + `category`（财经 / 政治 / 军事 / 游戏）归档 |
 
 种子数据：
 
@@ -299,7 +318,9 @@ host  all  all  192.168.159.0/24  md5
 - **3 个专题**，按分类自动挂载文章
 - 所有种子均为幂等写法（`WHERE NOT EXISTS`），可重复执行
 
-快讯入库规则：只采集 AI 垂直源——量子位、雷峰网（人工智能栏目）、AIbase 资讯、AIbase 日报、智源社区，均经自建 RSSHub 路由取正文。正文短于 120 字的不入库，只保留「标题 + 摘要 + 原文链接」，不做 HTML 站点抓取。
+快讯入库规则：5 个 AI 垂直源（量子位、雷峰网人工智能栏目、AIbase 资讯、AIbase 日报、智源社区）经自建 RSSHub 路由取正文；Hacker News 经 Algolia 搜索 API 按关键词取最近 30 天的 story，标题不含 AI 关键词的作为噪声丢弃。正文短于 120 字的不入库，只保留「标题 + 摘要 + 原文链接」，不做 HTML 站点抓取。存量治理（旧年份标题清理、中文标题与摘要回填、裁剪至最新 300 条）均为幂等操作。
+
+今日新闻入库规则：`daily-news-sync.js` 覆盖 财经 / 政治 / 军事 / 游戏 四个板块共 12 个源，均经自建 RSSHub 路由，每源取最新 15 条；入库前可选调用 MiMo 大模型做去重、摘要与板块归类，未配置 `MIMO_API_KEY` 时自动跳过并按原始分类保留。
 
 ## 内容与版权说明
 
