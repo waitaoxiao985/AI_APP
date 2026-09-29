@@ -5,3 +5,14 @@ dist/
 .DS_Store
 .vscode/
 .idea/
+
+# TWA build artifacts & secrets
+twa/.gradle/
+twa/build/
+twa/app/build/
+twa/jdk/
+twa/*.apk
+twa/*.aab
+twa/*.idsig
+twa/android.keystore
+twa/manifest-checksum.txt
