@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BookmarkSimple, Clock, SignOut, Books } from '@phosphor-icons/react'
 import { getBookmarks } from '../api.js'
 import Cover from '../components/Cover.jsx'
+import PushToggle from '../components/PushToggle.jsx'
 
 export default function Profile({ user, logout }) {
   const [bookmarks, setBookmarks] = useState([])
@@ -31,6 +32,9 @@ export default function Profile({ user, logout }) {
           <button onClick={() => navigate('/login')}>去登录</button>
         </div>
 
+        <h2 className="sub-title">设置</h2>
+        <PushToggle />
+
         <p className="page-foot">
           本应用文章为原创撰写，文末附参考文献与版权归属，不转载第三方全文。
         </p>
@@ -57,6 +61,9 @@ export default function Profile({ user, logout }) {
       </section>
 
       <h2 className="sub-title">我的收藏</h2>
+
+      <h2 className="sub-title">设置</h2>
+      <PushToggle />
 
       {error && (
         <div className="error enter" role="alert">

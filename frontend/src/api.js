@@ -127,3 +127,15 @@ export function addBookmark(articleId) {
 export function removeBookmark(articleId) {
   return request('/bookmarks/' + articleId, { method: 'DELETE' })
 }
+
+// Web Push
+export function getVapidKey() {
+  return request('/push/vapid-key')
+}
+
+export function subscribePush(subscription) {
+  return request('/push/subscribe', {
+    method: 'POST',
+    body: JSON.stringify(subscription)
+  })
+}
