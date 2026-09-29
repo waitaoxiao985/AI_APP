@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cron from 'node-cron';
 import { syncNews } from './news-sync.js';
 import { syncDailyNews } from './daily-news-sync.js';
+import { broadcastPush, ensurePushTable } from './push.js';
 import authRoutes from './routes/auth.js';
 import articleRoutes from './routes/articles.js';
 import bookmarkRoutes from './routes/bookmarks.js';
@@ -12,6 +13,7 @@ import topicRoutes from './routes/topics.js';
 import newsRoutes from './routes/news.js';
 import dailyNewsRoutes from './routes/daily-news.js';
 import newsTodayRoutes from './routes/news-today.js';
+import pushRoutes from './routes/push.js';
 
 dotenv.config();
 
@@ -69,8 +71,9 @@ app.get('/api/news/sync', async (req, res) => {
   }
   if (process.env.VERCEL) {
     try {
-      const [total] = await Promise.all([syncNews(), syncDailyNews()]);
-      res.json({ ok: true, total });
+      const [n, dn] = await Promise.all([syncNews(), syncDailyNews()]);
+      if (dn > 0) await pushDailyNewsUpdate();
+      res.json({ ok: true, total: n });
     } catch (e) {
       console.error('新闻采集失败（手动触发）:', e.message);
       res.status(500).json({ error: '采集失败' });
@@ -93,6 +96,7 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/news/today', newsTodayRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/daily-news', dailyNewsRoutes);
+app.use('/api/push', pushRoutes);
 
 app.use((err, req, res, next) => {
   // L2: 生产环境只打印 message，避免堆栈与敏感信息落日志
@@ -106,9 +110,26 @@ function runNewsSync(tag) {
     .catch((e) => console.error(`新闻采集失败（${tag}）: `, e.message));
 }
 
+async function pushDailyNewsUpdate() {
+  try {
+    await ensurePushTable();
+    const n = await broadcastPush({
+      title: '今日新闻已更新',
+      body: '军事、金融、游戏、政治四个板块有新内容，点击查看',
+      url: '/news-today'
+    });
+    console.log(`推送完成：${n} 位订阅者`);
+  } catch (e) {
+    console.error('推送失败:', e.message);
+  }
+}
+
 function runDailyNewsSync(tag) {
   syncDailyNews()
-    .then((n) => console.log(`今日新闻采集完成（${tag}）: ${n} 条`))
+    .then((n) => {
+      console.log(`今日新闻采集完成（${tag}）: ${n} 条`);
+      if (n > 0) pushDailyNewsUpdate();
+    })
     .catch((e) => console.error(`今日新闻采集失败（${tag}）: `, e.message));
 }
 
