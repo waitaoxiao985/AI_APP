@@ -10,6 +10,7 @@ import Profile from './pages/Profile.jsx'
 import Topic from './pages/Topic.jsx'
 import Articles from './pages/Articles.jsx'
 import News from './pages/News.jsx'
+import SecurityNews from './pages/SecurityNews.jsx'
 import NewsToday from './pages/NewsToday.jsx'
 import NewsDetail from './pages/NewsDetail.jsx'
 import NotFound from './pages/NotFound.jsx'
@@ -133,6 +134,7 @@ export default function App() {
           <Route path="/topic/:id" element={<Topic />} />
           <Route path="/articles" element={<Articles />} />
           <Route path="/news" element={<News />} />
+          <Route path="/security-news" element={<SecurityNews />} />
           <Route path="/news-today" element={<NewsToday />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/today" element={<TodayRedirect />} />

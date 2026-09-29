@@ -8,7 +8,9 @@
     "init-db": "node src/init-db.js",
     "seed-deep": "node src/seed-deep.js",
     "reset-db": "node src/reset-db.js",
+    "reset-news": "node src/reset-news.js",
     "fetch-news": "node src/fetch-news.mjs",
+    "fetch-security-news": "node src/fetch-security-news.mjs",
     "fetch-daily-news": "node src/fetch-daily-news.mjs",
     "gen-covers": "node src/gen-covers.mjs"
   },

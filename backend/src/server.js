@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cron from 'node-cron';
 import { syncNews } from './news-sync.js';
 import { syncDailyNews } from './daily-news-sync.js';
+import { syncSecurityNews } from './security-sync.js';
 import { broadcastPush, ensurePushTable } from './push.js';
 import authRoutes from './routes/auth.js';
 import articleRoutes from './routes/articles.js';
@@ -13,6 +14,7 @@ import topicRoutes from './routes/topics.js';
 import newsRoutes from './routes/news.js';
 import dailyNewsRoutes from './routes/daily-news.js';
 import newsTodayRoutes from './routes/news-today.js';
+import securityNewsRoutes from './routes/security-news.js';
 import pushRoutes from './routes/push.js';
 
 dotenv.config();
@@ -89,12 +91,40 @@ app.get('/api/news/sync', async (req, res) => {
     .catch((e) => console.error('今日新闻采集失败（手动触发）:', e.message));
 });
 
+app.get('/api/security-news/sync', async (req, res) => {
+  const token = process.env.SYNC_TOKEN;
+  const bearer = (req.headers.authorization || '').startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : null;
+  const authed =
+    (token && (bearer === token || req.query.token === token)) ||
+    (process.env.CRON_SECRET && bearer === process.env.CRON_SECRET);
+  if (!authed) {
+    return res.status(401).json({ error: 'token 无效' });
+  }
+  if (process.env.VERCEL) {
+    try {
+      const n = await syncSecurityNews();
+      res.json({ ok: true, total: n });
+    } catch (e) {
+      console.error('安全资讯采集失败（手动触发）:', e.message);
+      res.status(500).json({ error: '采集失败' });
+    }
+    return;
+  }
+  res.json({ ok: true, started: true });
+  syncSecurityNews()
+    .then((n) => console.log(`安全资讯采集完成（手动触发）: ${n} 条`))
+    .catch((e) => console.error('安全资讯采集失败（手动触发）:', e.message));
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/news/today', newsTodayRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/security-news', securityNewsRoutes);
 app.use('/api/daily-news', dailyNewsRoutes);
 app.use('/api/push', pushRoutes);
 
@@ -133,14 +163,22 @@ function runDailyNewsSync(tag) {
     .catch((e) => console.error(`今日新闻采集失败（${tag}）: `, e.message));
 }
 
+function runSecurityNewsSync(tag) {
+  syncSecurityNews()
+    .then((n) => console.log(`安全资讯采集完成（${tag}）: ${n} 条`))
+    .catch((e) => console.error(`安全资讯采集失败（${tag}）: `, e.message));
+}
+
 const PORT = process.env.PORT || 3003;
 
 if (!process.env.VERCEL) {
   cron.schedule('30 8 * * *', () => runNewsSync('定时 08:30'));
   cron.schedule('35 8 * * *', () => runDailyNewsSync('定时 08:35'));
+  cron.schedule('40 8 * * *', () => runSecurityNewsSync('定时 08:40'));
   cron.schedule('35 20 * * *', () => runDailyNewsSync('定时 20:35'));
   runNewsSync('启动补跑');
   runDailyNewsSync('启动补跑');
+  runSecurityNewsSync('启动补跑');
   app.listen(PORT, () => console.log(`后端已启动: http://localhost:${PORT}`));
 }
 

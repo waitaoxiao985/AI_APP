@@ -9,7 +9,7 @@ import {
   Books,
   Newspaper,
   CalendarBlank,
-  Sparkle
+  ShieldCheck
 } from '@phosphor-icons/react'
 import { getDaily, getTopics, getBookmarksRecent } from '../api.js'
 import Cover from '../components/Cover.jsx'
@@ -202,7 +202,7 @@ export default function Discover({ user }) {
             <ModuleCard title="知识分类" subtitle="按主题浏览文章" icon={Books} to="/articles" />
             <ModuleCard title="AI 快讯" subtitle="每日行业动态" icon={Newspaper} to="/news" />
             <ModuleCard title="今日新闻" subtitle="按日期翻阅快讯" icon={CalendarBlank} to="/news-today" />
-            <ModuleCard title="更多内容" subtitle="预留入口 · 后续接入新功能" icon={Sparkle} to="/articles" />
+            <ModuleCard title="网络安全" subtitle="漏洞预警 · 攻防技术" icon={ShieldCheck} to="/security-news" />
           </div>
         </>
       )}
