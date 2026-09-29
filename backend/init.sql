@@ -162,11 +162,34 @@ CREATE TABLE IF NOT EXISTS news (
   content TEXT,
   title_zh VARCHAR(300),
   summary VARCHAR(200),
+  key_points TEXT,
+  tags TEXT,
+  read_time VARCHAR(20),
   fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 DROP INDEX IF EXISTS idx_news_published;
 CREATE INDEX idx_news_published ON news(published_at);
+
+-- 网络安全资讯（独立于 AI 快讯 news 表；结构对齐，含富化字段）
+CREATE TABLE IF NOT EXISTS security_news (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(300) NOT NULL,
+  link VARCHAR(500) UNIQUE NOT NULL,
+  source VARCHAR(100),
+  published_at TIMESTAMP,
+  excerpt VARCHAR(500),
+  content TEXT,
+  title_zh VARCHAR(300),
+  summary VARCHAR(200),
+  key_points TEXT,
+  tags TEXT,
+  read_time VARCHAR(20),
+  fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DROP INDEX IF EXISTS idx_security_news_published;
+CREATE INDEX idx_security_news_published ON security_news(published_at);
 
 -- 今日新闻（通用新闻，独立于 AI 快讯 news 表；只存摘要不存正文）
 CREATE TABLE IF NOT EXISTS daily_news (

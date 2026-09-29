@@ -1,5 +1,6 @@
 import Parser from 'rss-parser';
 import { query } from './db.js';
+import { enrichItem } from './news-enrich.js';
 
 // 自建 RSSHub 服务地址（本地默认 http://localhost:1200）。
 // 未配置时全部走原生 feed；配置后，带 rsshub 字段的源优先走 RSSHub（可取到全文），失败自动回退原生 feed。
@@ -24,6 +25,22 @@ const MIN_CONTENT = 120;
 const EXCERPT_ONLY_SOURCES = new Set();
 
 const CLICK_THROUGH_STUB = /^(点击查看原文|点击原文|阅读全文|阅读原文)[>＞:：\s]*$/i;
+
+// 入库 cutoff：只保留 published_at >= 该日 00:00:00 的文章。留空则不过滤。
+const CUTOFF_DATE = (() => {
+  const raw = (process.env.NEWS_MIN_PUBLISH_DATE || '').trim();
+  if (!raw) return null;
+  const d = new Date(raw + 'T00:00:00');
+  return Number.isNaN(d.getTime()) ? null : d;
+})();
+
+// 早于 cutoff 或无发布时间的条目：跳过不入库（宁缺毋滥）
+function beforeCutoff(item) {
+  if (!CUTOFF_DATE) return false;
+  const t = item && item.publishedAt;
+  if (!t || Number.isNaN(t.getTime())) return true;
+  return t < CUTOFF_DATE;
+}
 
 // Hacker News 关键词：经 Algolia 搜索 API 按时间倒序逐个抓取
 const HN_KEYWORDS = ['AI', 'LLM', 'GPT', 'Claude', 'OpenAI', 'Anthropic', 'machine learning', 'deep learning'];
@@ -78,6 +95,15 @@ async function ensureNewsColumns() {
   if (!cols.has('summary')) {
     await query('ALTER TABLE news ADD COLUMN summary VARCHAR(200)');
   }
+  if (!cols.has('key_points')) {
+    await query('ALTER TABLE news ADD COLUMN key_points TEXT');
+  }
+  if (!cols.has('tags')) {
+    await query('ALTER TABLE news ADD COLUMN tags TEXT');
+  }
+  if (!cols.has('read_time')) {
+    await query('ALTER TABLE news ADD COLUMN read_time VARCHAR(20)');
+  }
 }
 
 // 标题以「(20XX)」结尾且年份早于今年的，视为旧帖（如「回顾 2023 大模型 (2023)」）
@@ -88,12 +114,20 @@ function isOldYearTitle(title) {
 }
 
 async function insertNews(item) {
+  const keyPoints = item.key_points && item.key_points.length ? JSON.stringify(item.key_points) : null;
+  const tags = item.tags && item.tags.length ? JSON.stringify(item.tags) : null;
   await query(
-    `INSERT INTO news (title, link, source, published_at, excerpt, content, title_zh, summary)
-     SELECT $1::varchar(300), $2::varchar(500), $3::varchar(100), $4::timestamp, $5::varchar(500), $6::text, $7::varchar(300), $8::varchar(200)
+    `INSERT INTO news (title, link, source, published_at, excerpt, content, title_zh, summary, key_points, tags, read_time)
+     SELECT $1::varchar(300), $2::varchar(500), $3::varchar(100), $4::timestamp, $5::varchar(500), $6::text, $7::varchar(300), $8::varchar(200), $9::text, $10::text, $11::varchar(20)
      WHERE NOT EXISTS (SELECT 1 FROM news WHERE link = $2)`,
-    [item.title, item.link, item.source, item.publishedAt, item.excerpt, item.content, item.title_zh || null, item.summary || null]
+    [item.title, item.link, item.source, item.publishedAt, item.excerpt, item.content, item.title_zh || null, item.summary || null, keyPoints, tags, item.read_time || null]
   );
+}
+
+// 广告 / 赞助内容剔除（仅对新条目）：标题或摘要命中则丢弃
+const AD_RE = /赞助|sponsored|广告|推广|ADV|promoted/i;
+function isAd(item) {
+  return AD_RE.test(String(item.title || '')) || AD_RE.test(String(item.excerpt || ''));
 }
 
 // 抓取单个 RSS 源，只收集条目不写库；RSSHub 优先、原生 feed 兜底，正文阈值与降级源逻辑与旧版一致
@@ -279,14 +313,39 @@ export async function syncNews() {
 
   // 新条目过滤：RSS 源全部是 AI 垂直媒体直接入库；HN 标题不含 AI 关键词的视为噪声丢弃
   let hnDropped = 0;
+  let adDropped = 0;
+  let cutoffDropped = 0;
   const toInsert = fresh.filter((it) => {
+    if (beforeCutoff(it)) {
+      cutoffDropped++;
+      return false;
+    }
+    if (isAd(it)) {
+      adDropped++;
+      return false;
+    }
     if (it.source !== 'Hacker News' || looksAIRelated(it.title)) return true;
     hnDropped++;
     return false;
   });
+  if (CUTOFF_DATE && cutoffDropped) {
+    console.log(`[ok] cutoff 过滤: 丢弃 ${cutoffDropped} 条（早于 ${process.env.NEWS_MIN_PUBLISH_DATE}）`);
+  }
   if (hnDropped) console.log(`[ok] HN 关键词过滤: 丢弃 ${hnDropped} 条`);
+  if (adDropped) console.log(`[ok] 广告过滤: 丢弃 ${adDropped} 条`);
 
+  // 入库前对每条做规则富化（翻译 + 摘要/观点/标签/时长）；单条失败仅该字段为空，不阻塞
   for (const it of toInsert) {
+    try {
+      const enriched = await enrichItem(it);
+      it.title_zh = enriched.title_zh || it.title_zh || null;
+      it.summary = enriched.summary || it.summary || null;
+      it.key_points = enriched.key_points;
+      it.tags = enriched.tags;
+      it.read_time = enriched.read_time;
+    } catch (e) {
+      console.log(`[skip] 富化失败 ${it.title && it.title.slice(0, 30)}: ${e && e.message}`);
+    }
     await insertNews(it);
   }
 

@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { CaretLeft, CaretRight, Clock, LinkSimple } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, Clock, LinkSimple, Hourglass } from '@phosphor-icons/react'
 import { getNewsItem } from '../api.js'
+
+function parseList(raw) {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw
+  try {
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr.filter((x) => x && String(x).trim()) : []
+  } catch {
+    return []
+  }
+}
 
 export default function NewsDetail() {
   const { id } = useParams()
@@ -35,6 +46,13 @@ export default function NewsDetail() {
   const paragraphs = body ? body.split('\n\n').filter((p) => p.trim()) : [];
   const snippet = item && !body ? (item.excerpt || '').trim() : '';
   const showSnippet = snippet.length >= 30;
+  const tags = item ? parseList(item.tags) : [];
+  const keyPoints = item ? parseList(item.key_points) : [];
+  const mainTitle = (item && item.title_zh && item.title_zh.trim()) || (item && item.title) || '';
+  const origTitle =
+    item && item.title_zh && item.title_zh.trim() && item.title && item.title !== item.title_zh
+      ? item.title
+      : '';
 
   return (
     <div className="page detail-page">
@@ -66,12 +84,45 @@ export default function NewsDetail() {
         <div className="enter">
           <div className="news-item-top">
             <span className="tag">{item.source}</span>
-            <span className="news-time">
-              <Clock size={11} />
-              {item.published_at ? new Date(item.published_at).toLocaleDateString('zh-CN') : ''}
+            <span className="news-meta-right">
+              {item.read_time && (
+                <span className="news-readtime">
+                  <Hourglass size={11} />
+                  {item.read_time}
+                </span>
+              )}
+              <span className="news-time">
+                <Clock size={11} />
+                {item.published_at ? new Date(item.published_at).toLocaleDateString('zh-CN') : ''}
+              </span>
             </span>
           </div>
-          <h1>{item.title}</h1>
+          <h1>{mainTitle}</h1>
+          {origTitle && <p className="news-item-subtitle">{origTitle}</p>}
+
+          {tags.length > 0 && (
+            <div className="news-tags">
+              {tags.map((t) => (
+                <span className="news-tag" key={t}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {item.summary && item.summary.trim().length >= 8 && (
+            <p className="news-item-summary">{item.summary}</p>
+          )}
+
+          {keyPoints.length > 0 && (
+            <ul className="news-keypoints">
+              {keyPoints.map((p, i) => (
+                <li className="news-keypoint" key={i}>
+                  {p}
+                </li>
+              ))}
+            </ul>
+          )}
 
           {paragraphs.length > 0 && (
             <div className="content">

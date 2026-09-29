@@ -63,16 +63,33 @@ export function getBookmarksRecent(limit) {
   return request('/bookmarks/recent?limit=' + limit)
 }
 
-export function getNews(limit, offset) {
+export function getNews(limit, offset, date) {
   const params = new URLSearchParams()
   if (limit) params.set('limit', String(limit))
   if (offset) params.set('offset', String(offset))
+  if (date) params.set('date', date)
   const qs = params.toString()
   return request('/news' + (qs ? '?' + qs : ''))
 }
 
+export function getNewsDates() {
+  return request('/news/dates')
+}
+
 export function getNewsItem(id) {
   return request('/news/' + id)
+}
+
+export function getSecurityNews(limit, offset) {
+  const params = new URLSearchParams()
+  if (limit) params.set('limit', String(limit))
+  if (offset) params.set('offset', String(offset))
+  const qs = params.toString()
+  return request('/security-news' + (qs ? '?' + qs : ''))
+}
+
+export function getSecurityNewsItem(id) {
+  return request('/security-news/' + id)
 }
 
 export function getDailyNews(category, limit) {
